@@ -9,6 +9,10 @@ namespace Skotz_Chess_Engine
     {
         static void Main(string[] args)
         {
+            UnitTest test = new UnitTest();
+            test.WriteBits(Constants.mask_F5);
+
+            Console.ReadKey();
         }
     }
 }
