@@ -10,7 +10,7 @@ namespace Skotz_Chess_Engine
         static void Main(string[] args)
         {
             UnitTest test = new UnitTest();
-            test.WriteBits(Constants.mask_F5);
+            test.WriteBits(Constants.movements[Constants.bit_D4, Constants.piece_B, 1, 2]);
 
             Console.ReadKey();
         }
