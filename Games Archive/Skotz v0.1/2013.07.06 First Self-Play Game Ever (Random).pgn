@@ -1,0 +1,39 @@
+[Event "Computer chess game"]
+[Site "SKOT84"]
+[Date "2013.07.06"]
+[Round "?"]
+[White "Skotz Chess Engine"]
+[Black "Skotz Chess Engine"]
+[Result "0-1"]
+[BlackElo "2000"]
+[ECO "B20"]
+[Opening "Sicilian"]
+[Time "19:39:14"]
+[Variation "English, 2...Nc6 3.Nf3"]
+[WhiteElo "2000"]
+[TimeControl "600"]
+[Termination "normal"]
+[PlyCount "220"]
+[WhiteType "program"]
+[BlackType "program"]
+
+1. b3 h5 2. Ba3 Rh6 3. Nf3 d6 4. Ng1 f6 5. d3 Kf7 6. Nd2 c5 7. c4 Nc6 8.
+Rb1 Be6 9. Qc2 Bc8 10. d4 cxd4 11. Rb2 g5 12. Qg6+ Ke6 13. h3 a5 14. Ndf3
+Nb8 15. Qe8 f5 16. Nh2 Ra7 17. g3 Qxe8 18. Bc5 a4 19. e4 Ra5 20. Kd1 Rxc5
+21. e5 Kf7 22. h4 a3 23. Ne2 Rh8 24. exd6 d3 25. Ng1 Be6 26. Ng4 b5 27.
+Bxd3 Re5 28. c5 Bxb3+ 29. Kd2 axb2 30. Bc2 gxh4 31. Kd1 Nd7 32. Rh2 Qa8 33.
+Nf6 Rxc5 34. Ne4 Rxc2 35. a4 Qb8 36. Rh1 Kg6 37. Nf3 fxe4 38. Rh2 Rc7+ 39.
+Kd2 Rh6 40. Ke3 Qa8 41. Rxh4 Kf6 42. dxc7 b1=Q 43. Rxh5 Qc8 44. Rg5 Rh1 45.
+Nd2 Qc2 46. Rd5 Rh7 47. Re5 Q2xc7 48. f4 Rf7 49. Kd4 Qc4+ 50. Ke3 Qxa4 51.
+g4 Ba2 52. Rxe7 Qca6 53. Ke2 Kg7 54. Kf2 Qa3 55. Rxe4 Bb4 56. Re5 Kf8 57.
+Nc4 Ne7 58. f5 Qc8 59. Re6 Qf3+ 60. Kg1 Qe3+ 61. Kg2 Ng6 62. g5 Qd8 63. Rb6
+Nh8 64. Rb7 Rh7 65. g6 Qg3+ 66. Kf1 Qa8 67. f6 Bb1 68. Rxb5 Qf4+ 69. Kg1
+Qc6 70. Ra5 Re7 71. g7+ Kf7 72. g8=Q+ Kxf6 73. Qg3 Qh4 74. Nd2 Qh6 75. Qe1
+Ng6 76. Qc1 Be4 77. Qa3 Qc5+ 78. Rxc5 Re8 79. Rc4 Bxd2 80. Qe3 Ba8 81. Rd4
+Rb8 82. Qg3 Qh5 83. Qf4+ Kg7 84. Re4 Qb5 85. Qf8+ Ndxf8 86. Re1 Qc6 87. Kh2
+Nh4 88. Re8 Qc2 89. Re3 Kh6 90. Kg1 Nfg6 91. Re1 Rg8 92. Ra1 Ba5 93. Rb1
+Nf4+ 94. Kf1 Rg3 95. Rc1 Nd5 96. Re1 Nb6 97. Ra1 Rg4 98. Ra3 Ng2 99. Re3
+Qd3+ 100. Kg1 Kg5 101. Re5+ Kf4 102. Re4+ Kg3 103. Rd4 Qa6 104. Rc4 Rg6
+105. Re4 Bxe4 106. Kh1 Qc8 107. Kg1 Qc5+ 108. Kh1 Qf5 109. Kg1 Ba8 110. Kh1
+Qb1# 0-1
+

@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.IO;
 
+// Scott Clayton 2013
+
 namespace Skotz_Chess_Engine
 {
     class UnitTest

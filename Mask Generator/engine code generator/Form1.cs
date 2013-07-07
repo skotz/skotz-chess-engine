@@ -479,12 +479,12 @@ namespace engine_code_generator
                 count = 0;
                 for (int x = 1; x < 8; x++)
                 {
-                    Point y = new Point(p.X, p.Y - x);
-                    if (!(y2.X <= 0 || y2.Y <= 0) && !(y2.X > 8 || y2.Y > 8))
+                    y2 = new Point(p.X, p.Y - x);
+                    if (y2.X <= 0 || y2.Y <= 0 || y2.X > 8 || y2.Y > 8)
                     {
                         break;
                     }
-                    ulong n = 1UL << BitFromPoint(y);
+                    ulong n = 1UL << BitFromPoint(y2);
                     build.Append("\r\n                " + string.Format("0x{0:X}", n) + ", ");
                     count++;
                 }
@@ -500,12 +500,12 @@ namespace engine_code_generator
                 count = 0;
                 for (int x = 1; x < 8; x++)
                 {
-                    Point y = new Point(p.X + x, p.Y);
-                    if (!(y2.X <= 0 || y2.Y <= 0) && !(y2.X > 8 || y2.Y > 8))
+                    y2 = new Point(p.X + x, p.Y);
+                    if (y2.X <= 0 || y2.Y <= 0 || y2.X > 8 || y2.Y > 8)
                     {
                         break;
                     }
-                    ulong n = 1UL << BitFromPoint(y);
+                    ulong n = 1UL << BitFromPoint(y2);
                     build.Append("\r\n                " + string.Format("0x{0:X}", n) + ", ");
                     count++;
                 }
@@ -521,12 +521,12 @@ namespace engine_code_generator
                 count = 0;
                 for (int x = 1; x < 8; x++)
                 {
-                    Point y = new Point(p.X, p.Y + x);
-                    if (!(y2.X <= 0 || y2.Y <= 0) && !(y2.X > 8 || y2.Y > 8))
+                    y2 = new Point(p.X, p.Y + x);
+                    if (y2.X <= 0 || y2.Y <= 0 || y2.X > 8 || y2.Y > 8)
                     {
                         break;
                     }
-                    ulong n = 1UL << BitFromPoint(y);
+                    ulong n = 1UL << BitFromPoint(y2);
                     build.Append("\r\n                " + string.Format("0x{0:X}", n) + ", ");
                     count++;
                 }
@@ -542,12 +542,12 @@ namespace engine_code_generator
                 count = 0;
                 for (int x = 1; x < 8; x++)
                 {
-                    Point y = new Point(p.X - x, p.Y);
-                    if (!(y2.X <= 0 || y2.Y <= 0) && !(y2.X > 8 || y2.Y > 8))
+                    y2 = new Point(p.X - x, p.Y);
+                    if (y2.X <= 0 || y2.Y <= 0 || y2.X > 8 || y2.Y > 8)
                     {
                         break;
                     }
-                    ulong n = 1UL << BitFromPoint(y);
+                    ulong n = 1UL << BitFromPoint(y2);
                     build.Append("\r\n                " + string.Format("0x{0:X}", n) + ", ");
                     count++;
                 }
@@ -669,12 +669,12 @@ namespace engine_code_generator
                 count = 0;
                 for (int x = 1; x < 8; x++)
                 {
-                    Point y = new Point(p.X, p.Y - x);
-                    if (!(y2.X <= 0 || y2.Y <= 0) && !(y2.X > 8 || y2.Y > 8))
+                    y2 = new Point(p.X, p.Y - x);
+                    if (y2.X <= 0 || y2.Y <= 0 || y2.X > 8 || y2.Y > 8)
                     {
                         break;
                     }
-                    ulong n = 1UL << BitFromPoint(y);
+                    ulong n = 1UL << BitFromPoint(y2);
                     build.Append("\r\n                " + string.Format("0x{0:X}", n) + ", ");
                     count++;
                 }
@@ -690,12 +690,12 @@ namespace engine_code_generator
                 count = 0;
                 for (int x = 1; x < 8; x++)
                 {
-                    Point y = new Point(p.X + x, p.Y);
-                    if (!(y2.X <= 0 || y2.Y <= 0) && !(y2.X > 8 || y2.Y > 8))
+                    y2 = new Point(p.X + x, p.Y);
+                    if (y2.X <= 0 || y2.Y <= 0 || y2.X > 8 || y2.Y > 8)
                     {
                         break;
                     }
-                    ulong n = 1UL << BitFromPoint(y);
+                    ulong n = 1UL << BitFromPoint(y2);
                     build.Append("\r\n                " + string.Format("0x{0:X}", n) + ", ");
                     count++;
                 }
@@ -711,12 +711,12 @@ namespace engine_code_generator
                 count = 0;
                 for (int x = 1; x < 8; x++)
                 {
-                    Point y = new Point(p.X, p.Y + x);
-                    if (!(y2.X <= 0 || y2.Y <= 0) && !(y2.X > 8 || y2.Y > 8))
+                    y2 = new Point(p.X, p.Y + x);
+                    if (y2.X <= 0 || y2.Y <= 0 || y2.X > 8 || y2.Y > 8)
                     {
                         break;
                     }
-                    ulong n = 1UL << BitFromPoint(y);
+                    ulong n = 1UL << BitFromPoint(y2);
                     build.Append("\r\n                " + string.Format("0x{0:X}", n) + ", ");
                     count++;
                 }
@@ -732,12 +732,12 @@ namespace engine_code_generator
                 count = 0;
                 for (int x = 1; x < 8; x++)
                 {
-                    Point y = new Point(p.X - x, p.Y);
-                    if (!(y2.X <= 0 || y2.Y <= 0) && !(y2.X > 8 || y2.Y > 8))
+                    y2 = new Point(p.X - x, p.Y);
+                    if (y2.X <= 0 || y2.Y <= 0 || y2.X > 8 || y2.Y > 8)
                     {
                         break;
                     }
-                    ulong n = 1UL << BitFromPoint(y);
+                    ulong n = 1UL << BitFromPoint(y2);
                     build.Append("\r\n                " + string.Format("0x{0:X}", n) + ", ");
                     count++;
                 }
@@ -919,6 +919,60 @@ namespace engine_code_generator
         {
             //return (9 - p.X) + (9 - p.Y) * 8 - 9;
             return 72 - p.X - 8 * p.Y;
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            StringBuilder sb = new StringBuilder();
+
+            for (int i = 0; i < 64; i++)
+            {
+                sb.Append(string.Format("0x{0:X}", 0x1UL << i) + ", ");
+            }
+
+            richTextBox1.Text = sb.ToString();
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            StringBuilder sb = new StringBuilder();
+
+            sb.Append("\r\n{");
+            for (int i = 0; i < 64; i++)
+            {
+                sb.Append("\r\n    {");
+                for (int j = 0; j < 64; j++)
+                {
+                    string sq1 = ((char)('h' - (i % 8))).ToString() + ((i / 8) + 1);
+                    string sq2 = ((char)('h' - (j % 8))).ToString() + ((j / 8) + 1);
+                    sb.Append("\r\n        \"" + sq1 + sq2 + "\",");
+                }
+                sb.Append("\r\n    },");
+            }
+            sb.Append("\r\n}");
+
+            richTextBox1.Text = Regex.Replace(sb.ToString(), @"\,([^}{,]*)\}", m => m.ToString().Substring(1));
+        }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+            StringBuilder sb = new StringBuilder();
+
+            sb.Append("\r\n{");
+            for (int i = 0; i < 64; i++)
+            {
+                sb.Append("\r\n    {");
+                for (int j = 0; j < 64; j++)
+                {
+                    string sq1 = ((char)('h' - (i % 8))).ToString() + ((i / 8) + 1);
+                    string sq2 = ((char)('h' - (j % 8))).ToString() + ((j / 8) + 1);
+                    sb.Append("\r\n        \"" + sq1 + sq2 + "\",");
+                }
+                sb.Append("\r\n    },");
+            }
+            sb.Append("\r\n}");
+
+            richTextBox1.Text = Regex.Replace(sb.ToString(), @"\,([^}{,]*)\}", m => m.ToString().Substring(1));
         }
     }
 }
