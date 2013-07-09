@@ -974,5 +974,40 @@ namespace engine_code_generator
 
             richTextBox1.Text = Regex.Replace(sb.ToString(), @"\,([^}{,]*)\}", m => m.ToString().Substring(1));
         }
+
+        private void button5_Click(object sender, EventArgs e)
+        {
+            int[] _bitcounts = new int[65536];
+            int position1 = -1;
+            int position2 = -1;
+            //
+            // Loop through all the elements and assign them.
+            //
+            for (int i = 1; i < 65536; i++, position1++)
+            {
+                //
+                // Adjust the positions we read from.
+                //
+                if (position1 == position2)
+                {
+                    position1 = 0;
+                    position2 = i;
+                }
+                _bitcounts[i] = _bitcounts[position1] + 1;
+            }
+
+            StringBuilder sb = new StringBuilder();
+
+            sb.Append("{");
+
+            foreach (int i in _bitcounts)
+            {
+                sb.Append(i.ToString() + ", ");
+            }
+
+            sb.Append("}");
+
+            richTextBox1.Text = sb.ToString();;
+        }
     }
 }

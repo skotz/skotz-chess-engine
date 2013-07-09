@@ -83,6 +83,13 @@ namespace Skotz_Chess_Engine
 
         public bool IsSquareAttacked(Board position, ulong square_mask, bool origin_is_white_player)
         {
+            // It is possible to evaluate a position where the king no longer exists in which case the square mask could be zero.
+            // It's a time tradeoff to simply pretend this is possible and keep going.
+            if (square_mask == 0UL)
+            {
+                return true;
+            }
+
             ulong my_pieces;
             ulong enemy_pieces_diag;
             ulong enemy_pieces_cross;
@@ -152,18 +159,22 @@ namespace Skotz_Chess_Engine
         /// </summary>
         public bool TestMove(Move move)
         {
-            Board copy = board;
-            bool white = (copy.flags & Constants.flag_white_to_move) != 0UL;
+            return TestMove(board, move);
+        }
 
-            MakeMove(ref copy, move);
+        public bool TestMove(Board position, Move move)
+        {
+            bool white = (position.flags & Constants.flag_white_to_move) != 0UL;
+
+            MakeMove(ref position, move);
 
             if (white)
             {
-                return !IsSquareAttacked(copy, copy.w_king, true);
+                return !IsSquareAttacked(position, position.w_king, true);
             }
             else
             {
-                return !IsSquareAttacked(copy, copy.b_king, false);
+                return !IsSquareAttacked(position, position.b_king, false);
             }
         }
 
@@ -339,8 +350,120 @@ namespace Skotz_Chess_Engine
 
         public Move GetBestMove()
         {
-            // TODO... Obviously
-            return GetRandomMove();
+            // return GetRandomMove();
+
+            return GetBestMove(ref board, 4, Int32.MinValue, Int32.MaxValue, 8);
+        }
+
+        private Move GetBestMove(ref Board position, int depth, int alpha, int beta, int selective)
+        {
+            // Reached max depth of search
+            if (depth <= 0)
+            {
+                return new Move()
+                {
+                    evaluation = EvaluateBoard(ref position)
+                };
+            }
+
+            bool white_to_play = (position.flags & Constants.flag_white_to_move) != 0UL;
+
+            int count;
+            Move[] moves = GetAllMoves(position, out count);
+            Move bestmove = new Move();
+            Move testmove;
+            Board temp;
+            bool set = false;
+
+            for (int move_num = 0; move_num < count; move_num++)
+            {
+                // Limit to captures for selective searches
+                if ((moves[move_num].flags & Constants.move_flag_is_capture) != 0UL && depth <= 0)
+                {
+                    continue;
+                }
+
+                // Copy game state
+                temp = position;
+
+                // Make the suggested move
+                MakeMove(ref temp, moves[move_num]);
+
+                // Is the move valid?
+                if (white_to_play)
+                {
+                    if (IsSquareAttacked(temp, temp.w_king, true))
+                    {
+                        continue;
+                    }
+                }
+                else
+                {
+                    if (IsSquareAttacked(temp, temp.b_king, false))
+                    {
+                        continue;
+                    }
+                }
+
+                // Evaluate the counter moves
+                testmove = GetBestMove(ref temp, depth - 1, alpha, beta, selective - 1);
+
+                if (white_to_play)
+                {
+                    if (testmove.evaluation > bestmove.evaluation || !set)
+                    {
+                        bestmove = moves[move_num];
+                        bestmove.evaluation = testmove.evaluation;
+                        set = true;
+
+                        alpha = testmove.evaluation;
+                        if (beta <= alpha)
+                        {
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    if (testmove.evaluation < bestmove.evaluation || !set)
+                    {
+                        bestmove = moves[move_num];
+                        bestmove.evaluation = testmove.evaluation;
+                        set = true;
+
+                        beta = testmove.evaluation;
+                        if (beta <= alpha)
+                        {
+                            break;
+                        }
+                    }
+                }
+            }
+
+            return bestmove;
+        }
+
+        private int EvaluateBoard(ref Board position)
+        {
+            // Start with a random evaluation to mix it up ever so slightly when there's two equal moves
+            int eval = Utility.Rand.Next(2) - 1;
+
+            // Evaluate material
+            eval += Utility.CountBits(position.w_king) * Constants.eval_king;
+            eval += Utility.CountBits(position.w_queen) * Constants.eval_queen;
+            eval += Utility.CountBits(position.w_rook) * Constants.eval_rook;
+            eval += Utility.CountBits(position.w_bishop) * Constants.eval_bishop;
+            eval += Utility.CountBits(position.w_knight) * Constants.eval_knight;
+            eval += Utility.CountBits(position.w_pawn) * Constants.eval_pawn;
+
+            eval -= Utility.CountBits(position.b_king) * Constants.eval_king;
+            eval -= Utility.CountBits(position.b_queen) * Constants.eval_queen;
+            eval -= Utility.CountBits(position.b_rook) * Constants.eval_rook;
+            eval -= Utility.CountBits(position.b_bishop) * Constants.eval_bishop;
+            eval -= Utility.CountBits(position.b_knight) * Constants.eval_knight;
+            eval -= Utility.CountBits(position.b_pawn) * Constants.eval_pawn;
+
+            return eval;
         }
 
         public Move GetRandomMove()
@@ -370,7 +493,7 @@ namespace Skotz_Chess_Engine
 
         public Move[] GetAllMoves(Board position, out int moves_count)
         {
-            Move[] moves = new Move[230];
+            Move[] moves = new Move[256];
             int index = 0;
 
             ulong square_mask;
@@ -504,7 +627,7 @@ namespace Skotz_Chess_Engine
                     // Is this move a capture?
                     if ((destination & enemy_pieces) != 0UL)
                     {
-                        moveflags &= Constants.move_flag_is_capture;
+                        moveflags |= Constants.move_flag_is_capture;
                         capture = true;
                     }
 
@@ -568,6 +691,8 @@ namespace Skotz_Chess_Engine
                             }
                         }
                     }
+
+                    // TODO: Generate and evaluate all possible promotions for pawns
 
                     moves[move_index++] = new Move()
                     {

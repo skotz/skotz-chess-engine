@@ -13,6 +13,7 @@ namespace Skotz_Chess_Engine
         public ulong mask_to;
         public ulong flags;
         public int from_piece_type;
+        public int evaluation;
 
         public override string ToString()
         {
