@@ -15,6 +15,8 @@ namespace Skotz_Chess_Engine
         public int from_piece_type;
         public int evaluation;
 
+        public string primary_variation;
+
         public override string ToString()
         {
             return Utility.GetMoveString(mask_from, mask_to);

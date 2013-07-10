@@ -1,0 +1,29 @@
+[Event "Computer chess game"]
+[Site "SKOT84"]
+[Date "2013.07.08"]
+[Round "?"]
+[White "Skotz Chess Engine"]
+[Black "Skotz Chess Engine"]
+[Result "1/2-1/2"]
+[BlackElo "2000"]
+[ECO "A04"]
+[Opening "Reti Opening"]
+[Time "22:00:16"]
+[Variation "1...g6 2.g3 Bg7"]
+[WhiteElo "2000"]
+[TimeControl "300+20"]
+[Termination "normal"]
+[PlyCount "101"]
+[WhiteType "program"]
+[BlackType "program"]
+
+1. Nf3 f6 2. Rg1 f5 3. Rh1 h6 4. Rg1 h5 5. Rh1 d6 6. Rg1 c5 7. Rh1 f4 8. e3
+fxe3 9. fxe3 Bg4 10. Bd3 Rh6 11. h3 Be6 12. Ng5 c4 13. Nxe6 Rxe6 14. Bxc4
+d5 15. Qxh5+ g6 16. Bb5+ Nc6 17. Qg4 Rf6 18. Rh2 a6 19. Bxc6+ Rxc6 20. g3
+Rf6 21. Rf2 Rxf2 22. Kxf2 Qd6 23. Qf4 Qxf4+ 24. gxf4 Bg7 25. Na3 d4 26. Rb1
+dxe3+ 27. Kxe3 a5 28. Nb5 Kf8 29. Nc7 Ra6 30. Nxa6 bxa6 31. b4 a4 32. b5
+axb5 33. Rxb5 Nh6 34. Ba3 Nf5+ 35. Ke4 Nd6+ 36. Bxd6 exd6 37. Rb6 Bh6 38.
+Rxd6 Kf7 39. d3 a3 40. c3 Bxf4 41. Rxg6 Be5 42. c4 Bc7 43. Ra6 Kf8 44. d4
+Bg3 45. d5 Bc7 46. Kd4 Bf4 47. Ra8+ Kf7 48. Ra7+ Kf8 49. Ra8+ Kf7 50. Ra7+
+Kf8 51. Ra8+ {3-fold repetition} 1/2-1/2
+

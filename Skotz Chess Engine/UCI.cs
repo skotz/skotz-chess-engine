@@ -51,49 +51,28 @@ namespace Skotz_Chess_Engine
                     Console.WriteLine(move);
 
                     go = false;
-
-                    //game.Ponder(!player);
                 }
 
                 // Wait for other player
                 do
                 {
                     string cmd = Console.ReadLine();
-                    //Console.WriteLine("CMD: " + cmd);
 
-                    for (int tries = 3; tries >= 0; tries--)
-                    {
-                        try
-                        {
-                            StreamWriter w = new StreamWriter((player ? "W" : "B") + ".out.txt", true);
-                            w.WriteLine(cmd);
-                            w.Close();
-
-                            break;
-                        }
-                        catch (IOException)
-                        {
-                            System.Threading.Thread.Sleep(10);
-                        }
-                    }
+                    AppendToDebugFile(player, cmd);
 
                     try
                     {
                         char[] breakit = cmd.ToCharArray();
-                        if (breakit.Length >= 4 && breakit.Length <= 5)
-                            if (breakit[0] >= 'a' && breakit[0] <= 'h')
-                                if (breakit[2] >= 'a' && breakit[2] <= 'h')
-                                    if (breakit[1] >= '1' && breakit[1] <= '8')
-                                        if (breakit[3] >= '1' && breakit[3] <= '8')
-                                        {
-                                            //game.StopPondering();
-
-                                            game.MakeMove(cmd);
-
-                                            player = !player;
-
-                                            break;
-                                        }
+                        if ((breakit.Length >= 4 && breakit.Length <= 5) &&
+                            (breakit[0] >= 'a' && breakit[0] <= 'h') &&
+                            (breakit[2] >= 'a' && breakit[2] <= 'h') &&
+                            (breakit[1] >= '1' && breakit[1] <= '8') &&
+                            (breakit[3] >= '1' && breakit[3] <= '8'))
+                        {
+                            game.MakeMove(cmd);
+                            player = !player;
+                            break;
+                        }
 
                         if (cmd == "uci")
                         {
@@ -181,6 +160,25 @@ namespace Skotz_Chess_Engine
                     }
                 } while (!quit);
             } while (!quit);
+        }
+
+        private static void AppendToDebugFile(bool player, string cmd)
+        {
+            for (int tries = 3; tries >= 0; tries--)
+            {
+                try
+                {
+                    StreamWriter w = new StreamWriter((player ? "W" : "B") + ".out.txt", true);
+                    w.WriteLine(cmd);
+                    w.Close();
+
+                    break;
+                }
+                catch (IOException)
+                {
+                    System.Threading.Thread.Sleep(10);
+                }
+            }
         }
     }
 }
