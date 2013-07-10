@@ -24,9 +24,11 @@ namespace Skotz_Chess_Engine
 
         #region Board Flag Masks
 
-        public const ulong flag_castle_white = 0x0000000000000001UL;
-        public const ulong flag_castle_black = 0x0000000000000002UL;
+        public const ulong flag_castle_white_king = 0x0000000000000001UL;
+        public const ulong flag_castle_black_king = 0x0000000000000002UL;
         public const ulong flag_white_to_move = 0x0000000000000004UL;
+        public const ulong flag_castle_white_queen = 0x0000000000000008UL;
+        public const ulong flag_castle_black_queen = 0x0000000000000010UL;
 
         #endregion
 

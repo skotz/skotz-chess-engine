@@ -93,27 +93,49 @@ namespace Skotz_Chess_Engine
                             game.ResetBoard();
                         }
 
-                        if (cmd.StartsWith("position startpos moves "))
+                        if (cmd.StartsWith("position "))
                         {
-                            List<string> moves = cmd.ToLower().Replace("position startpos moves ", "").Split(' ').ToList();
+                            // Trim off the position command
+                            cmd = cmd.Substring(9);
 
-                            player = true;
-                            game = new Game();
-                            game.ResetBoard();
-                            foreach (string m in moves)
+                            if (cmd.StartsWith("fen "))
                             {
-                                if (m == "f2f1n")
+                                string fen = cmd.Replace("fen ", "");
+
+                                game = new Game();
+                                player = game.LoadBoard(fen);
+
+                                go = false;
+
+                                // Add a series of moves to the fen notation just supplied
+                                if (cmd.Contains("moves "))
                                 {
-                                    int i = 1;
+                                    cmd = cmd.Substring(cmd.IndexOf("moves ") + 6);
+
+                                    List<string> moves = cmd.ToLower().Replace("position startpos moves ", "").Split(' ').ToList();
+                                    foreach (string m in moves)
+                                    {
+                                        game.MakeMove(m);
+                                        player = !player;
+                                    }
                                 }
-
-                                game.MakeMove(m);
-                                //Console.WriteLine("~move " + m + " ~player " + (player ? "W" : "B"));
-                                player = !player;
                             }
-                            go = false;
+                            else if (cmd.StartsWith("moves "))
+                            {
+                                List<string> moves = cmd.ToLower().Replace("position startpos moves ", "").Split(' ').ToList();
 
-                            break;
+                                player = true;
+                                game = new Game();
+                                game.ResetBoard();
+                                foreach (string m in moves)
+                                {
+                                    game.MakeMove(m);
+                                    player = !player;
+                                }
+                                go = false;
+
+                                break;
+                            }
                         }
 
                         if (cmd == "go" || cmd.StartsWith("go "))

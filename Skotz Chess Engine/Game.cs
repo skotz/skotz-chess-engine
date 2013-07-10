@@ -25,6 +25,14 @@ namespace Skotz_Chess_Engine
             board = BoardGenerator.NewStandardSetup();
         }
 
+        public bool LoadBoard(string fen)
+        {
+            board = BoardGenerator.FromFEN(fen);
+
+            // Return whether it's white's turn to move
+            return (board.flags & Constants.flag_white_to_move) != 0UL;
+        }
+
         public void MakeMove(string move)
         {
             char[] x = move.ToCharArray();
@@ -227,7 +235,8 @@ namespace Skotz_Chess_Engine
                         }
 
                         // The king moved, so the castling privelage is now gone
-                        position.flags &= ~Constants.flag_castle_white;
+                        position.flags &= ~Constants.flag_castle_white_queen;
+                        position.flags &= ~Constants.flag_castle_white_king;
 
                         break;
                     case Constants.piece_Q:
@@ -248,6 +257,23 @@ namespace Skotz_Chess_Engine
                         break;
                     case Constants.piece_P:
                         position.w_pawn &= ~move.mask_from;
+
+                        // Is this a 2 square jump? Set the en-passent square 
+                        if (move.mask_to == (move.mask_from << 16))
+                        {
+                            position.en_passent_square = move.mask_from << 8;
+                        }
+                        else
+                        {
+                            position.en_passent_square = 0UL;
+                        }
+
+                        // Is this an en-passant capture?
+                        if ((move.flags & Constants.move_flag_is_en_passent) != 0UL)
+                        {
+                            // Remove the pawn that jumped past your destination square
+                            position.b_pawn &= ~(move.mask_to >> 8);
+                        }
 
                         // Deal with promotions
                         if ((move.flags & Constants.move_flag_is_promote_bishop) != 0UL)
@@ -307,7 +333,9 @@ namespace Skotz_Chess_Engine
                             position.b_rook &= ~Constants.mask_A8;
                             position.b_rook |= Constants.mask_D8;
                         }
-                        position.flags &= ~Constants.flag_castle_black;
+
+                        position.flags &= ~Constants.flag_castle_black_king;
+                        position.flags &= ~Constants.flag_castle_black_queen;
                         break;
                     case Constants.piece_Q:
                         position.b_queen &= ~move.mask_from;
@@ -316,6 +344,8 @@ namespace Skotz_Chess_Engine
                     case Constants.piece_R:
                         position.b_rook &= ~move.mask_from;
                         position.b_rook |= move.mask_to;
+
+                        // TODO: CLEAR CASTLING RIGHTS
                         break;
                     case Constants.piece_B:
                         position.b_bishop &= ~move.mask_from;
@@ -327,6 +357,21 @@ namespace Skotz_Chess_Engine
                         break;
                     case Constants.piece_P:
                         position.b_pawn &= ~move.mask_from;
+
+                        if (move.mask_to == (move.mask_from >> 16))
+                        {
+                            position.en_passent_square = move.mask_from >> 8;
+                        }
+                        else
+                        {
+                            position.en_passent_square = 0UL;
+                        }
+
+                        if ((move.flags & Constants.move_flag_is_en_passent) != 0UL)
+                        {
+                            // Remove the pawn that jumped past your destination square
+                            position.w_pawn &= ~(move.mask_to << 8);
+                        }
 
                         // Deal with promotions
                         if ((move.flags & Constants.move_flag_is_promote_bishop) != 0UL)
@@ -364,7 +409,7 @@ namespace Skotz_Chess_Engine
             stopwatch = Stopwatch.StartNew();
             evals = 0;
 
-            Move best = GetBestMove(ref board, 6, Int32.MinValue, Int32.MaxValue, 6, true);
+            Move best = GetBestMove(ref board, 4, Int32.MinValue, Int32.MaxValue, 4, true);
 
             return best;
         }
@@ -658,9 +703,8 @@ namespace Skotz_Chess_Engine
             {
                 if (white_to_play)
                 {
-                    if ((position.flags & Constants.flag_castle_white) != 0UL)
+                    if ((position.flags & Constants.flag_castle_white_king) != 0UL)
                     {
-
                         // Short castle
                         clearsquares = Constants.mask_F1 | Constants.mask_G1;
                         if (position.w_king == Constants.mask_E1 &&
@@ -679,7 +723,10 @@ namespace Skotz_Chess_Engine
                                 from_piece_type = pieceType
                             };
                         }
+                    }
 
+                    if ((position.flags & Constants.flag_castle_white_queen) != 0UL)
+                    {
                         // Long castle
                         clearsquares = Constants.mask_D1 | Constants.mask_C1 | Constants.mask_B1;
                         if (position.w_king == Constants.mask_E1 &&
@@ -702,7 +749,7 @@ namespace Skotz_Chess_Engine
                 }
                 else
                 {
-                    if ((position.flags & Constants.flag_castle_black) != 0UL)
+                    if ((position.flags & Constants.flag_castle_black_king) != 0UL)
                     {
                         // Short castle
                         clearsquares = Constants.mask_F8 | Constants.mask_G8;
@@ -722,7 +769,10 @@ namespace Skotz_Chess_Engine
                                 from_piece_type = pieceType
                             };
                         }
+                    }
 
+                    if ((position.flags & Constants.flag_castle_black_queen) != 0UL)
+                    {
                         // Long castle
                         clearsquares = Constants.mask_D8 | Constants.mask_C8 | Constants.mask_B8;
                         if (position.b_king == Constants.mask_E8 &&
@@ -786,14 +836,23 @@ namespace Skotz_Chess_Engine
                                 break;
                             }
 
-                            // Make sure the pawns only move sideways if they are capturing
-                            if (destination == (square_mask << 9) && !capture)
+                            // En-passant - run BEFORE general capture checking since this won't normally be considered a capture (no piece on target square)
+                            if (destination == position.en_passent_square && position.en_passent_square != 0UL)
                             {
-                                break;
+                                moveflags |= Constants.move_flag_is_en_passent;
+                                moveflags |= Constants.move_flag_is_capture;
                             }
-                            if (destination == (square_mask << 7) && !capture)
+                            else
                             {
-                                break;
+                                // Make sure the pawns only move sideways if they are capturing
+                                if (destination == (square_mask << 9) && !capture)
+                                {
+                                    break;
+                                }
+                                if (destination == (square_mask << 7) && !capture)
+                                {
+                                    break;
+                                }
                             }
 
                             // Make sure pawns don't try to capture on an initial 2 square jump or general forward move
@@ -819,15 +878,24 @@ namespace Skotz_Chess_Engine
                             {
                                 break;
                             }
-
-                            // Make sure the pawns only move sideways if they are capturing
-                            if (destination == (square_mask >> 9) && !capture)
+                            
+                            // En-passant - run BEFORE general capture checking since this won't normally be considered a capture (no piece on target square)
+                            if (destination == position.en_passent_square && position.en_passent_square != 0UL)
                             {
-                                break;
+                                moveflags |= Constants.move_flag_is_en_passent;
+                                moveflags |= Constants.move_flag_is_capture;
                             }
-                            if (destination == (square_mask >> 7) && !capture)
+                            else
                             {
-                                break;
+                                // Make sure the pawns only move sideways if they are capturing
+                                if (destination == (square_mask >> 9) && !capture)
+                                {
+                                    break;
+                                }
+                                if (destination == (square_mask >> 7) && !capture)
+                                {
+                                    break;
+                                }
                             }
 
                             // Make sure pawns don't try to capture on an initial 2 square jump or general forward move

@@ -24,5 +24,10 @@ namespace Skotz_Chess_Engine
         public ulong b_bishop;
         public ulong b_knight;
         public ulong b_pawn;
+
+        public ulong en_passent_square;
+
+        public int half_move_number;
+        public int move_number;
     }
 }
