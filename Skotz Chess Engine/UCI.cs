@@ -34,11 +34,6 @@ namespace Skotz_Chess_Engine
             bool go = false;
             bool quit = false;
 
-            int time = 10;
-            int depth = 99;
-
-            string move;
-
             do
             {
                 if (go)
@@ -46,9 +41,7 @@ namespace Skotz_Chess_Engine
                     Move best = game.GetBestMove();
                     game.MakeMove(best);
 
-                    move = "bestmove " + best.ToString();
-
-                    Console.WriteLine(move);
+                    Console.WriteLine("bestmove " + best.ToString());
 
                     go = false;
                 }
@@ -120,20 +113,26 @@ namespace Skotz_Chess_Engine
                                     }
                                 }
                             }
-                            else if (cmd.StartsWith("moves "))
+
+                            if (cmd.StartsWith("startpos "))
                             {
-                                List<string> moves = cmd.ToLower().Replace("position startpos moves ", "").Split(' ').ToList();
+                                cmd = cmd.Replace("startpos ", "");
 
                                 player = true;
                                 game = new Game();
                                 game.ResetBoard();
-                                foreach (string m in moves)
-                                {
-                                    game.MakeMove(m);
-                                    player = !player;
-                                }
+
                                 go = false;
 
+                                if (cmd.StartsWith("moves "))
+                                {
+                                    List<string> moves = cmd.ToLower().Replace("moves ", "").Split(' ').ToList();
+                                    foreach (string m in moves)
+                                    {
+                                        game.MakeMove(m);
+                                        player = !player;
+                                    }
+                                }
                                 break;
                             }
                         }

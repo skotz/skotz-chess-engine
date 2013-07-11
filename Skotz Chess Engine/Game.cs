@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Diagnostics;
+using System.Timers;
 
 // Scott Clayton 2013
 
@@ -14,15 +15,21 @@ namespace Skotz_Chess_Engine
 
         private Stopwatch stopwatch;
         private int evals;
+        private bool cutoff;
+
+        // TODO: this will not work when the engine is allowed to multi-thread since this assumes a singular user traversing through the tree
+        private Dictionary<ulong, int> positions;
 
         public Game()
         {
             board = new Board();
+            positions = new Dictionary<ulong, int>();
         }
 
         public void ResetBoard()
         {
             board = BoardGenerator.NewStandardSetup();
+            positions = new Dictionary<ulong, int>();
         }
 
         public bool LoadBoard(string fen)
@@ -91,6 +98,98 @@ namespace Skotz_Chess_Engine
             };
 
             MakeMove(m);
+
+            ulong test = GetPositionHash(ref board);
+        }
+
+        public ulong GetPositionHash(ref Board position)
+        {
+            ulong hash = 0UL;
+            ulong square_mask;
+
+            // TODO: Add en-passant hashing
+
+            if ((position.flags & Constants.flag_castle_black_king) != 0UL)
+            {
+                hash ^= Constants.zobrist_castle_black_king;
+            }
+            if ((position.flags & Constants.flag_castle_white_king) != 0UL)
+            {
+                hash ^= Constants.zobrist_castle_white_king;
+            }
+            if ((position.flags & Constants.flag_castle_black_queen) != 0UL)
+            {
+                hash ^= Constants.zobrist_castle_black_queen;
+            }
+            if ((position.flags & Constants.flag_castle_white_queen) != 0UL)
+            {
+                hash ^= Constants.zobrist_castle_white_queen;
+            }
+
+            for (int square = 0; square < 64; square++)
+            {
+                square_mask = Constants.bit_index_to_mask[square];
+
+                // Is it white to move?
+                if ((position.flags & Constants.flag_white_to_move) != 0UL)
+                {
+                    if ((position.w_king & square_mask) != 0UL)
+                    {
+                        hash ^= Constants.zobrist_pieces[0, square];
+                    }
+                    else if ((position.w_queen & square_mask) != 0UL)
+                    {
+                        hash ^= Constants.zobrist_pieces[1, square];
+                    }
+                    else if ((position.w_rook & square_mask) != 0UL)
+                    {
+                        hash ^= Constants.zobrist_pieces[2, square];
+                    }
+                    else if ((position.w_bishop & square_mask) != 0UL)
+                    {
+                        hash ^= Constants.zobrist_pieces[3, square];
+                    }
+                    else if ((position.w_knight & square_mask) != 0UL)
+                    {
+                        hash ^= Constants.zobrist_pieces[4, square];
+                    }
+                    else if ((position.w_pawn & square_mask) != 0UL)
+                    {
+                        hash ^= Constants.zobrist_pieces[5, square];
+                    }
+                }
+                else // Black to move
+                {
+                    hash ^= Constants.zobrist_black_to_move;
+
+                    if ((position.b_king & square_mask) != 0UL)
+                    {
+                        hash ^= Constants.zobrist_pieces[6, square];
+                    }
+                    else if ((position.b_queen & square_mask) != 0UL)
+                    {
+                        hash ^= Constants.zobrist_pieces[7, square];
+                    }
+                    else if ((position.b_rook & square_mask) != 0UL)
+                    {
+                        hash ^= Constants.zobrist_pieces[8, square];
+                    }
+                    else if ((position.b_bishop & square_mask) != 0UL)
+                    {
+                        hash ^= Constants.zobrist_pieces[9, square];
+                    }
+                    else if ((position.b_knight & square_mask) != 0UL)
+                    {
+                        hash ^= Constants.zobrist_pieces[10, square];
+                    }
+                    else if ((position.b_pawn & square_mask) != 0UL)
+                    {
+                        hash ^= Constants.zobrist_pieces[11, square];
+                    }
+                }
+            }
+
+            return hash;
         }
 
         public bool IsSquareAttacked(Board position, ulong square_mask, bool origin_is_white_player)
@@ -197,9 +296,22 @@ namespace Skotz_Chess_Engine
 
         private void MakeMove(ref Board position, Move move)
         {
+            ulong hash = GetPositionHash(ref position);
+            if (positions.ContainsKey(hash))
+            {
+                positions[hash]++;
+            }
+            else
+            {
+                positions.Add(hash, 1);
+            }
+
             // Is it white to move?
             if ((position.flags & Constants.flag_white_to_move) != 0UL)
             {
+                // Increment the half move count (number of moves since last "irreversible" move)
+                position.half_move_number++;
+
                 // Clear all possible enemy pieces from the target square
                 if ((move.flags & Constants.move_flag_is_capture) != 0UL)
                 {
@@ -304,6 +416,10 @@ namespace Skotz_Chess_Engine
             }
             else
             {
+                // After each move by black we increment the full move counter
+                position.move_number++;
+                position.half_move_number++;
+
                 // Clear all possible enemy pieces from the target square
                 if ((move.flags & Constants.move_flag_is_capture) != 0UL)
                 {
@@ -400,22 +516,59 @@ namespace Skotz_Chess_Engine
                 // It's now white's turn
                 position.flags |= Constants.flag_white_to_move;
             }
+
+            // Reset the half move counter on any capture or pawn move
+            if (move.from_piece_type == Constants.piece_P || (position.flags & Constants.move_flag_is_capture) != 0UL)
+            {
+                position.half_move_number = 0;
+            }
         }
 
         public Move GetBestMove()
         {
-            // return GetRandomMove();
-
             stopwatch = Stopwatch.StartNew();
             evals = 0;
+            cutoff = false;
 
-            Move best = GetBestMove(ref board, 4, Int32.MinValue, Int32.MaxValue, 4, true);
+            Move best = new Move();
+            Move search;
+
+            Timer timer = new Timer(500);
+            timer.Elapsed += new ElapsedEventHandler(timer_Elapsed);
+            timer.Start();
+
+            // Iterative deepening
+            for (int depth = 2; depth <= 100; depth += 2)
+            {
+                search = GetBestMove(ref board, depth, Int32.MinValue, Int32.MaxValue, depth, true);
+
+                if (!cutoff)
+                {
+                    best = search;
+                }
+            }
+
+            timer.Stop();
 
             return best;
         }
 
+        void timer_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            if (stopwatch.ElapsedMilliseconds > 2500)
+            {
+                cutoff = true;
+            }
+        }
+
         private Move GetBestMove(ref Board position, int depth, int alpha, int beta, int selective, bool firstlevel = false)
         {
+            // Stop calculating and toss any results
+            if (cutoff)
+            {
+                return new Move();
+            }
+
             // Reached max depth of search
             if (depth <= 0 && selective <= 0)
             {
@@ -434,6 +587,8 @@ namespace Skotz_Chess_Engine
             Move testmove;
             Board temp;
             bool set = false;
+            ulong hash;
+            bool improved = false;
 
             for (int move_num = 0; move_num < count; move_num++)
             {
@@ -468,6 +623,18 @@ namespace Skotz_Chess_Engine
                 // Evaluate the counter moves
                 testmove = GetBestMove(ref temp, depth - 1, alpha, beta, selective - 1);
 
+                // Detect 3 fold repetition
+                hash = GetPositionHash(ref position);
+                if (positions[hash] >= 3)
+                {
+                    // It's a dead draw
+                    testmove.evaluation = 0;
+                }
+
+                // TODO: This won't work for multi-threaded tree searches...
+                // Remove the evaluated move from the hash table
+                positions[hash]--;
+
                 if (white_to_play)
                 {
                     if (testmove.evaluation > bestmove.evaluation || !set)
@@ -476,6 +643,7 @@ namespace Skotz_Chess_Engine
                         bestmove.evaluation = testmove.evaluation;
                         bestmove.primary_variation = moves[move_num].ToString() + " " + testmove.primary_variation;
                         set = true;
+                        improved = true;
 
                         alpha = testmove.evaluation;
                         if (beta <= alpha)
@@ -492,6 +660,7 @@ namespace Skotz_Chess_Engine
                         bestmove.evaluation = testmove.evaluation;
                         bestmove.primary_variation = moves[move_num].ToString() + " " + testmove.primary_variation;
                         set = true;
+                        improved = true;
 
                         beta = testmove.evaluation;
                         if (beta <= alpha)
@@ -502,9 +671,10 @@ namespace Skotz_Chess_Engine
                 }
 
                 // Display some stats if we are at the base level of recursion
-                if (firstlevel)
+                if (firstlevel && !cutoff && improved)
                 {
-                    Console.WriteLine("info score cp " + bestmove.evaluation + " depth " + depth + " nodes " + evals + " time " + stopwatch.ElapsedMilliseconds + " currmove " + moves[move_num] + " pv " + bestmove.primary_variation);
+                    Console.WriteLine("info score cp " + bestmove.evaluation + " depth " + (depth/2) + " nodes " + evals + " time " + stopwatch.ElapsedMilliseconds + " currmove " + moves[move_num] + " pv " + bestmove.primary_variation);
+                    improved = false;
                 }
             }
 
@@ -555,6 +725,9 @@ namespace Skotz_Chess_Engine
             eval += (position.b_knight & Constants.mask_B1) != 0UL ? Constants.eval_develop_piece : 0;
 
             // Evaluate pawn structure
+            // TODO
+
+            // Evaluate piece mobility
             // TODO
 
             return eval;

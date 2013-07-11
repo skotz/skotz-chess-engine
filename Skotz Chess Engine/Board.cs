@@ -29,5 +29,8 @@ namespace Skotz_Chess_Engine
 
         public int half_move_number;
         public int move_number;
+
+        // TODO: Maintain a running hash to cut down on time
+        // public ulong hash;
     }
 }

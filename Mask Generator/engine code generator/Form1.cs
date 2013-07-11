@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using System.Text.RegularExpressions;
+using System.Security.Cryptography;
 
 // Scott Clayton
 
@@ -22,6 +23,7 @@ namespace engine_code_generator
         public Form1()
         {
             InitializeComponent();
+            rng = new RNGCryptoServiceProvider();
         }
 
         public ulong RelSquare(Point p, int relX, int relY)
@@ -975,6 +977,14 @@ namespace engine_code_generator
             richTextBox1.Text = Regex.Replace(sb.ToString(), @"\,([^}{,]*)\}", m => m.ToString().Substring(1));
         }
 
+        RandomNumberGenerator rng;
+
+
+        public ulong Rand()
+        {
+            return rng.NextInt64();
+        }
+
         private void button5_Click(object sender, EventArgs e)
         {
             int[] _bitcounts = new int[65536];
@@ -1007,7 +1017,36 @@ namespace engine_code_generator
 
             sb.Append("}");
 
-            richTextBox1.Text = sb.ToString();;
+            richTextBox1.Text = sb.ToString(); ;
         }
+
+        private void button6_Click(object sender, EventArgs e)
+        {
+            StringBuilder sb = new StringBuilder();
+
+            sb.Append("\r\n{");
+            for (int i = 0; i < 12; i++)
+            {
+                sb.Append("\r\n    {");
+                for (int j = 0; j < 64; j++)
+                {
+                    sb.Append("\r\n        " + string.Format("0x{0:X}", Rand()) + ",");
+                }
+                sb.Append("\r\n    },");
+            }
+            sb.Append("\r\n}");
+
+            richTextBox1.Text = Regex.Replace(sb.ToString(), @"\,([^}{,]*)\}", m => m.ToString().Substring(1));
+        }
+    }
+}
+
+public static class Extensions
+{
+    public static ulong NextInt64(this RandomNumberGenerator rnd)
+    {
+        var buffer = new byte[sizeof(ulong)];
+        rnd.GetBytes(buffer);
+        return BitConverter.ToUInt64(buffer, 0);
     }
 }

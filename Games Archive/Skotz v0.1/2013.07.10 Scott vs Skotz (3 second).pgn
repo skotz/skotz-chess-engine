@@ -1,0 +1,44 @@
+[Event "Computer chess game"]
+[Site "SKOT84"]
+[Date "2013.07.10"]
+[Round "?"]
+[White "Scott"]
+[Black "Skotz Chess Engine"]
+[Result "1-0"]
+[BlackElo "2000"]
+[ECO "D13"]
+[Opening "Slav"]
+[Time "22:53:18"]
+[Variation "Exchange, 5.Nc3 e6"]
+[WhiteElo "2400"]
+[Termination "normal"]
+[PlyCount "91"]
+[WhiteType "human"]
+[BlackType "program"]
+
+1. c4 d5 {(h7-h6 Ng1-f3 c7-c6) 0.00/4 3} 2. cxd5 Qxd5 {(e7-e5) 0.00/3 3} 3.
+Nc3 Qc4 {(Qd5-c5 Ng1-f3 Qc5-b5 Qd1-c2 f7-f5) 0.00/3 3} 4. e3 Qe6 {(Qc4-b3)
+0.00/3 3} 5. d4 a5 {(Qe6-g4 Ng1-f3 Qg4-e6 Bf1-d3 h7-h5 Bc1-d2) 0.00/3 3} 6.
+Nf3 Qg4 {(Qe6-c4 Rh1-g1 Ra8-a7 Bf1-d3 Bc8-g4 Rg1-h1) 0.00/3 3} 7. Be2 Qxg2
+{(Qg4-h5 Rh1-g1 Bc8-h3 Rg1-f1) 0.00/3 3} 8. Rg1 Qh3 {(Qg2-g4 Rg1-g3) 0.00/3
+3} 9. Rg3 Qf5 {(Qh3-h6 Qd1-c2 Ra8-a6 Ke1-d2) 0.00/3 3} 10. Qa4+ Bd7
+{(Qf5-b5) 0.00/3 3} 11. Bb5 Bxb5 {(Qf5-g6) 0.00/3 3} 12. Qxb5+ Qxb5
+{(Qf5xb5) 0.00/3 3} 13. Nxb5 Kd7 {(g7-g6 Ke1-d1 c7-c5 Nf3-g5 c5-c4) 0.00/3
+3} 14. Ne5+ Kc8 {(Kd7-e6) 0.00/3 3} 15. Nxf7 c6 {(g7-g5) 0.00/3 3} 16. Nc3
+a4 {(g7-g5) 0.00/3 3} 17. Nxh8 a3 {(Nb8-a6) 0.00/3 3} 18. bxa3 e6 {(Nb8-d7)
+0.00/3 3} 19. Nf7 Rxa3 {(Ng8-h6 Ke1-e2 c6-c5) 0.00/3 3} 20. Bxa3 Bxa3
+{(h7-h5) 0.00/3 3} 21. Rxg7 Nf6 {(Ba3-f8) 0.00/3 3} 22. Rb1 Bf8 {(Ba3-e7)
+0.00/3 3} 23. Ne5 Bxg7 {(Nf6-g8) 0.00/3 3} 24. f4 Nd5 {(Nf6-g4) 0.00/3 3}
+25. Nxd5 cxd5 {(e6xd5 Ke1-e2 h7-h6) 0.00/4 3} 26. Rb6 Bf6 {(Nb8-a6 Ke1-e2
+Kc8-d8) 0.00/3 3} 27. Rxe6 Bh4+ {(b7-b5) 0.00/3 3} 28. Ke2 Kc7 {(b7-b6)
+0.00/3 3} 29. Rh6 Bd8 {(Nb8-d7) 0.00/3 3} 30. Rxh7+ Kc8 {(Kc7-c8 h2-h3
+Bd8-a5) 0.00/4 3} 31. Nd3 Bf6 {(Bd8-g5) 0.00/3 3} 32. Nc5 b6 {(b7-b5)
+0.00/3 3} 33. Na4 b5 {(Nb8-c6 Ke2-d1 b6-b5 Na4-b6+ Kc8-b8 Nb6xd5) +5.97/3
+3} 34. Nb6+ Kd8 {(Kc8-d8 h2-h3 Nb8-a6 Ke2-f2 Bf6-h8) 0.00/4 3} 35. Nxd5
+Bxd4 {(Nb8-a6) 0.00/3 3} 36. exd4 Nc6 {(Kd8-c8) 0.00/4 3} 37. f5 Nxd4+
+{(Nc6-b8) 0.00/4 3} 38. Kd3 Nxf5 {(Nd4-e6) 0.00/4 3} 39. h4 Kc8 {(Nf5-g7)
+0.00/4 3} 40. h5 Ng3 {(Nf5-g7) 0.00/4 3} 41. h6 Nh1 {(Ng3-h5) 0.00/4 3} 42.
+Rg7 Nf2+ {(b5-b4 a2-a3 Kc8-d8 Kd3-d4 Nh1-f2) 0.00/4 3} 43. Ke2 Ng4
+{(Nf2-g4) 0.00/4 3} 44. h7 Nf6 {(Ng4-h6) 0.00/4 3} 45. h8=Q+ Ne8 {(Nf6-e8
+Ke2-e3 b5-b4 a2-a3 b4xa3 Ke3-e4 Kc8-d8) 0.00/7 3} 46. Qxe8# 1-0
+
