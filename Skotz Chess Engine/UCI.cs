@@ -13,7 +13,7 @@ namespace Skotz_Chess_Engine
         Game game;
 
         string engine = "Skotz";
-        string version = "v0.1";
+        string version = "v0.2";
 
         public UCI()
         {

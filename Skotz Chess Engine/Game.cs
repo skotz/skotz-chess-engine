@@ -19,6 +19,8 @@ namespace Skotz_Chess_Engine
 
         // TODO: this will not work when the engine is allowed to multi-thread since this assumes a singular user traversing through the tree
         private Dictionary<ulong, int> positions;
+        
+        private Dictionary<ulong, int> evaluations;
 
         public Game()
         {
@@ -537,6 +539,8 @@ namespace Skotz_Chess_Engine
             timer.Elapsed += new ElapsedEventHandler(timer_Elapsed);
             timer.Start();
 
+            evaluations = new Dictionary<ulong, int>();
+
             // Iterative deepening
             for (int depth = 2; depth <= 100; depth += 2)
             {
@@ -555,7 +559,7 @@ namespace Skotz_Chess_Engine
 
         void timer_Elapsed(object sender, ElapsedEventArgs e)
         {
-            if (stopwatch.ElapsedMilliseconds > 2500)
+            if (stopwatch.ElapsedMilliseconds > 30 * 1000)
             {
                 cutoff = true;
             }
@@ -604,6 +608,16 @@ namespace Skotz_Chess_Engine
                 // Make the suggested move
                 MakeMove(ref temp, moves[move_num]);
 
+                // Detect 3 fold repetition
+                hash = GetPositionHash(ref position);
+
+                // TODO: This won't work for multi-threaded tree searches...
+                if (positions[hash] >= 3)
+                {
+                    // It's a dead draw
+                    testmove.evaluation = 0;
+                }
+
                 // Is the move valid?
                 if (white_to_play)
                 {
@@ -623,22 +637,20 @@ namespace Skotz_Chess_Engine
                 // Evaluate the counter moves
                 testmove = GetBestMove(ref temp, depth - 1, alpha, beta, selective - 1);
 
-                // Detect 3 fold repetition
-                hash = GetPositionHash(ref position);
-                if (positions[hash] >= 3)
-                {
-                    // It's a dead draw
-                    testmove.evaluation = 0;
-                }
-
-                // TODO: This won't work for multi-threaded tree searches...
                 // Remove the evaluated move from the hash table
                 positions[hash]--;
+                if (positions[hash] <= 0)
+                {
+                    // Clean up some of the millions of empty records...
+                    positions.Remove(hash);
+                }
 
                 if (white_to_play)
                 {
                     if (testmove.evaluation > bestmove.evaluation || !set)
                     {
+                        // TODO: compute fastest mate by reducing score through levels
+
                         bestmove = moves[move_num];
                         bestmove.evaluation = testmove.evaluation;
                         bestmove.primary_variation = moves[move_num].ToString() + " " + testmove.primary_variation;
@@ -683,6 +695,13 @@ namespace Skotz_Chess_Engine
 
         private int EvaluateBoard(ref Board position)
         {
+            //// See if we can look up a previous calculation first
+            //ulong hash = GetPositionHash(ref position);
+            //if (evaluations.ContainsKey(hash))
+            //{
+            //    return evaluations[hash];
+            //}
+
             // Start with a random evaluation to mix it up ever so slightly when there's two equal moves
             int eval = Utility.Rand.Next(3) - 1;
             evals++;
@@ -729,6 +748,8 @@ namespace Skotz_Chess_Engine
 
             // Evaluate piece mobility
             // TODO
+
+            //evaluations.Add(hash, eval);
 
             return eval;
         }

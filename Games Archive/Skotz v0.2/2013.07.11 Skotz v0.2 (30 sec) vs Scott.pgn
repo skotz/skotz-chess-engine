@@ -1,0 +1,46 @@
+[Event "Computer chess game"]
+[Site "SKOT84"]
+[Date "2013.07.11"]
+[Round "?"]
+[White "Skotz Chess Engine"]
+[Black "Scott"]
+[Result "0-1"]
+[BlackElo "2400"]
+[ECO "A00"]
+[Opening "Mieses Opening"]
+[Time "23:04:15"]
+[Variation "1...d5"]
+[WhiteElo "2000"]
+[Termination "normal"]
+[PlyCount "58"]
+[WhiteType "program"]
+[BlackType "human"]
+
+1. Na3 {(Nb1-a3 e7-e6 Na3-b5 Bf8-c5 Ng1-h3 Bc5xf2+) -1.30/3 30} e5 2. Nb5
+{(h2-h3 d7-d5 Rh1-h2 c7-c6 b2-b4 Bc8xh3) -1.46/3 30} a6 3. Nc3 {(e2-e3
+a6xb5 Bf1xb5 c7-c6 Bb5-c4 Ra8xa2) -3.29/3 30} d5 4. e3 {(e2-e3 d5-d4 e3xd4
+Qd8xd4 Nc3-e2 Qd4xf2+) -1.45/3 30} Nf6 5. Nge2 {(Ng1-f3 Bf8-d6 Bf1-d3 e5-e4
+Bd3xa6 Nb8xa6) -2.16/3 30} Bb4 6. a3 {(Rh1-g1 Ra8-a7 a2-a3 Bb4xc3 d2xc3
+O-O) -5.39/3 30} Bxc3 7. Nxc3 {(Rh1-g1 Ra8-a7 Ne2xc3 O-O Bf1-e2 e5-e4)
+-5.26/3 30} d4 8. exd4 {(Ra1-a2 Ra8-a7 Bf1xa6 b7xa6 O-O O-O) -2.16/3 30}
+exd4 9. Qe2+ {(Qd1-e2+ Ke8-f8 Nc3-a4 Nf6-g4 Ke1-d1 Ng4xf2+) -1.31/3 30} Be6
+10. Ne4 {(Qe2-c4 Ra8-a7 Qc4-c5 b7-b6 Bf1-b5+ a6xb5) -3.14/3 30} O-O 11. f3
+{(d2-d3 Qd8-d5 Ne4xf6+ g7xf6 Bc1-d2 Qd5xg2) -1.25/3 30} Re8 12. Kd1 {(d2-d3
+Be6-d5 Bc1-d2 Nf6xe8 Ne4-c5 Bd5xf3) -1.25/3 30} Nc6 13. Rg1 {(g2-g3 Nf6xe4
+f3xe4 Qd8-d6 Bf1-g2 Qd6xa3) -1.24/3 30} Bf5 14. Nxf6+ {(g2-g4 Bf5-g6 Bf1-g2
+Bg6xe4 f3xe4 Nf6xe4) -1.24/3 30} Qxf6 15. Qf2 {(Qe2-f2 Qf6-e5 g2-g3 Bf5-e6
+Bf1-d3 Qe5xg3) -1.24/3 30} Rad8 16. Bd3 {(Bf1-d3 Bf5-e6 Bd3-e4 Nc6-a5
+Rg1-h1 Qf6xf3+) -1.22/3 30} Ne5 17. Bxf5 {(Kd1-e2 Ne5-g4+ Qf2-g3 Rd8xe8+
+Ke2-d1 Bf5xd3) -3.24/3 30} Qxf5 18. d3 {(d2-d3 c7-c6 Bc1-d2 Ne5-g4 Qf2-g3
+Ng4xh2) -1.09/3 30} b5 19. Bd2 {(h2-h3 Qf5-d7 Bc1-d2 h7-h6 Kd1-c1 Ne5xf3)
+-1.01/3 30} c5 20. Kc1 {(Kd1-c1 Qf5-f6 Rg1-h1 Qf6-e7 Rh1-g1 Ne5xd3+)
+-1.00/3 30} Rc8 21. Rh1 {(Rg1-h1 Qf5-f6 Rh1-g1 Ne5-g4 Qf2-g3 Ng4xh2)
+-1.00/3 30} Ng4 22. Qg3 {(Qf2-g3 Ng4-e5 Rh1-g1 Ne5-g6 Rg1-h1 Qf5xd3)
+-1.00/3 30} Ne3 23. Re1 {(Rh1-e1 Ne3-d5 Re1-e5 Qf5-d7 Ra1-a2 Nd5-b6)
+-0.01/3 30} Kf8 24. Bxe3 {(Ra1-b1 Kf8-g8 Bd2xe3 d4xe3 Re1xe3 Qf5xf3) 0.00/3
+30} dxe3 25. Qd6+ {(Qg3-d6+ Kf8-g8 Qd6xa6 Qf5-d7 Re1xe3 Qd7xd3) +0.99/3 30}
+Kg8 26. Qxa6 {(h2-h3 e3-e2 Re1xe2 a6-a5 Ra1-b1 Qf5xd3) 0.00/3 30} c4 27.
+Rxe3 {(Re1xe3 c4xd3 Re3xd3 Rc8xc2+ Kc1xc2 Qf5xd3+) +0.89/3 30} Rxe3 28. g4
+{(g2-g4 Qf5-c5 d3-d4 Qc5-g5 f3-f4 Qg5xf4) -4.00/3 30} Qd7 29. dxc4 {(d3-d4
+Qd7-e8 Qa6-a5 Qe8xe3+ Kc1-b1 Qe3xd4) -4.05/3 30} Re1# 0-1
+
