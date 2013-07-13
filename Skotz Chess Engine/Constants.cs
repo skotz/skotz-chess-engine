@@ -11,7 +11,7 @@ namespace Skotz_Chess_Engine
     {
         #region Evaluation Constants
 
-        public const int eval_king = 1000000;
+        public const int eval_king = 200000;
         public const int eval_queen = 900;
         public const int eval_rook = 500;
         public const int eval_bishop = 300;
@@ -19,6 +19,9 @@ namespace Skotz_Chess_Engine
         public const int eval_pawn = 100;
 
         public const int eval_develop_piece = 15;
+
+        public const int eval_king_loss_threshold = eval_king / 2;
+        public const int eval_adjust_king_loss = 1000;
 
         #endregion
 

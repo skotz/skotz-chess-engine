@@ -19,7 +19,7 @@ namespace Skotz_Chess_Engine
 
         // TODO: this will not work when the engine is allowed to multi-thread since this assumes a singular user traversing through the tree
         private Dictionary<ulong, int> positions;
-        
+
         private Dictionary<ulong, int> evaluations;
 
         public Game()
@@ -44,64 +44,71 @@ namespace Skotz_Chess_Engine
 
         public void MakeMove(string move)
         {
-            char[] x = move.ToCharArray();
-
-            int fromFile = 8 - ((int)x[0] - 96);
-            int fromRank = int.Parse(x[1].ToString()) - 1;
-            int fromBit = fromRank * 8 + fromFile;
-
-            int toFile = 8 - ((int)x[2] - 96);
-            int toRank = int.Parse(x[3].ToString()) - 1;
-            int toBit = toRank * 8 + toFile;
-
-            ulong moveflags = 0UL;
-
-            ulong from_mask = 1UL << fromBit;
-            ulong to_mask = 1UL << toBit;
-            int piece_type = GetPieceTypeOfSquare(board, from_mask);
-
-            //UnitTest test = new UnitTest();
-            //test.WriteBits(1UL << fromBit);
-            //test.WriteBits(1UL << toBit);
-
-            // Deal with promotions
-            if (x.Length == 5)
+            if (move.Length == 4 || move.Length == 5)
             {
-                if (x[4] == 'q')
+                char[] x = move.ToCharArray();
+
+                int fromFile = 8 - ((int)x[0] - 96);
+                int fromRank = int.Parse(x[1].ToString()) - 1;
+                int fromBit = fromRank * 8 + fromFile;
+
+                int toFile = 8 - ((int)x[2] - 96);
+                int toRank = int.Parse(x[3].ToString()) - 1;
+                int toBit = toRank * 8 + toFile;
+
+                ulong moveflags = 0UL;
+
+                ulong from_mask = 1UL << fromBit;
+                ulong to_mask = 1UL << toBit;
+                int piece_type = GetPieceTypeOfSquare(board, from_mask);
+
+                //UnitTest test = new UnitTest();
+                //test.WriteBits(1UL << fromBit);
+                //test.WriteBits(1UL << toBit);
+
+                // Deal with promotions
+                if (x.Length == 5)
                 {
-                    moveflags |= Constants.move_flag_is_promote_queen;
+                    if (x[4] == 'q')
+                    {
+                        moveflags |= Constants.move_flag_is_promote_queen;
+                    }
+                    if (x[4] == 'r')
+                    {
+                        moveflags |= Constants.move_flag_is_promote_rook;
+                    }
+                    if (x[4] == 'b')
+                    {
+                        moveflags |= Constants.move_flag_is_promote_bishop;
+                    }
+                    if (x[4] == 'n')
+                    {
+                        moveflags |= Constants.move_flag_is_promote_knight;
+                    }
                 }
-                if (x[4] == 'r')
+
+                // See if this move is a capture
+                if (GetPieceTypeOfSquare(board, to_mask) != -1)
                 {
-                    moveflags |= Constants.move_flag_is_promote_rook;
+                    moveflags |= Constants.move_flag_is_capture;
                 }
-                if (x[4] == 'b')
+
+                Move m = new Move()
                 {
-                    moveflags |= Constants.move_flag_is_promote_bishop;
-                }
-                if (x[4] == 'n')
-                {
-                    moveflags |= Constants.move_flag_is_promote_knight;
-                }
+                    mask_from = from_mask,
+                    mask_to = to_mask,
+                    from_piece_type = piece_type,
+                    flags = moveflags
+                };
+
+                MakeMove(m);
+
+                ulong test = GetPositionHash(ref board);
             }
-
-            // See if this move is a capture
-            if (GetPieceTypeOfSquare(board, to_mask) != -1)
+            else
             {
-                moveflags |= Constants.move_flag_is_capture;
+                // Invalid move
             }
-
-            Move m = new Move()
-            {
-                mask_from = from_mask,
-                mask_to = to_mask,
-                from_piece_type = piece_type,
-                flags = moveflags
-            };
-
-            MakeMove(m);
-
-            ulong test = GetPositionHash(ref board);
         }
 
         public ulong GetPositionHash(ref Board position)
@@ -360,6 +367,16 @@ namespace Skotz_Chess_Engine
                     case Constants.piece_R:
                         position.w_rook &= ~move.mask_from;
                         position.w_rook |= move.mask_to;
+
+                        // Clear the corresponding castling flag for the side that this rook came from
+                        if (move.mask_from == Constants.mask_A1)
+                        {
+                            position.flags &= ~Constants.flag_castle_white_queen;
+                        }
+                        if (move.mask_from == Constants.mask_H1)
+                        {
+                            position.flags &= ~Constants.flag_castle_white_king;
+                        }
                         break;
                     case Constants.piece_B:
                         position.w_bishop &= ~move.mask_from;
@@ -463,7 +480,15 @@ namespace Skotz_Chess_Engine
                         position.b_rook &= ~move.mask_from;
                         position.b_rook |= move.mask_to;
 
-                        // TODO: CLEAR CASTLING RIGHTS
+                        // Clear the corresponding castling flag for the side that this rook came from
+                        if (move.mask_from == Constants.mask_A8)
+                        {
+                            position.flags &= ~Constants.flag_castle_black_queen;
+                        }
+                        if (move.mask_from == Constants.mask_H8)
+                        {
+                            position.flags &= ~Constants.flag_castle_black_king;
+                        }
                         break;
                     case Constants.piece_B:
                         position.b_bishop &= ~move.mask_from;
@@ -559,10 +584,14 @@ namespace Skotz_Chess_Engine
 
         void timer_Elapsed(object sender, ElapsedEventArgs e)
         {
-            if (stopwatch.ElapsedMilliseconds > 30 * 1000)
+            if (stopwatch.ElapsedMilliseconds > 10 * 1000)
             {
                 cutoff = true;
             }
+
+            long nps = (long)((double)evals / ((double)stopwatch.ElapsedMilliseconds / 1000.0));
+            Console.WriteLine("info nps " + nps +
+                            " nodes " + evals);
         }
 
         private Move GetBestMove(ref Board position, int depth, int alpha, int beta, int selective, bool firstlevel = false)
@@ -645,12 +674,20 @@ namespace Skotz_Chess_Engine
                     positions.Remove(hash);
                 }
 
+                // Compute fastest mate by reducing score through levels
+                if (testmove.evaluation > Constants.eval_king_loss_threshold)
+                {
+                    testmove.evaluation -= Constants.eval_adjust_king_loss;
+                }
+                if (testmove.evaluation < -Constants.eval_king_loss_threshold)
+                {
+                    testmove.evaluation += Constants.eval_adjust_king_loss;
+                }
+
                 if (white_to_play)
                 {
                     if (testmove.evaluation > bestmove.evaluation || !set)
                     {
-                        // TODO: compute fastest mate by reducing score through levels
-
                         bestmove = moves[move_num];
                         bestmove.evaluation = testmove.evaluation;
                         bestmove.primary_variation = moves[move_num].ToString() + " " + testmove.primary_variation;
@@ -685,8 +722,16 @@ namespace Skotz_Chess_Engine
                 // Display some stats if we are at the base level of recursion
                 if (firstlevel && !cutoff && improved)
                 {
-                    Console.WriteLine("info score cp " + bestmove.evaluation + " depth " + (depth/2) + " nodes " + evals + " time " + stopwatch.ElapsedMilliseconds + " currmove " + moves[move_num] + " pv " + bestmove.primary_variation);
-                    improved = false;
+                    if (improved)
+                    {
+                        Console.WriteLine("info score cp " + bestmove.evaluation +
+                            " depth " + (depth / 2) +
+                            " nodes " + evals +
+                            " time " + stopwatch.ElapsedMilliseconds +
+                            " currmove " + moves[move_num] +
+                            " pv " + bestmove.primary_variation);
+                        improved = false;
+                    }
                 }
             }
 
@@ -738,10 +783,10 @@ namespace Skotz_Chess_Engine
             eval -= (position.w_knight & Constants.mask_G1) != 0UL ? Constants.eval_develop_piece : 0;
             eval -= (position.w_knight & Constants.mask_B1) != 0UL ? Constants.eval_develop_piece : 0;
 
-            eval += (position.b_bishop & Constants.mask_F1) != 0UL ? Constants.eval_develop_piece : 0;
-            eval += (position.b_bishop & Constants.mask_C1) != 0UL ? Constants.eval_develop_piece : 0;
-            eval += (position.b_knight & Constants.mask_G1) != 0UL ? Constants.eval_develop_piece : 0;
-            eval += (position.b_knight & Constants.mask_B1) != 0UL ? Constants.eval_develop_piece : 0;
+            eval += (position.b_bishop & Constants.mask_F8) != 0UL ? Constants.eval_develop_piece : 0;
+            eval += (position.b_bishop & Constants.mask_C8) != 0UL ? Constants.eval_develop_piece : 0;
+            eval += (position.b_knight & Constants.mask_G8) != 0UL ? Constants.eval_develop_piece : 0;
+            eval += (position.b_knight & Constants.mask_B8) != 0UL ? Constants.eval_develop_piece : 0;
 
             // Evaluate pawn structure
             // TODO
@@ -890,7 +935,7 @@ namespace Skotz_Chess_Engine
             ulong clearsquares;
             bool capture;
             bool promotion = false;
-            
+
             // Take care of castling moves for the king
             // The king cannot castle through check (although the rook may)
             if (pieceType == Constants.piece_K)
@@ -902,7 +947,7 @@ namespace Skotz_Chess_Engine
                         // Short castle
                         clearsquares = Constants.mask_F1 | Constants.mask_G1;
                         if (position.w_king == Constants.mask_E1 &&
-                            (position.w_rook & Constants.mask_H1) != 0UL && 
+                            (position.w_rook & Constants.mask_H1) != 0UL &&
                             !IsSquareAttacked(position, Constants.mask_E1, true) &&
                             !IsSquareAttacked(position, Constants.mask_F1, true) &&
                             !IsSquareAttacked(position, Constants.mask_G1, true) &&
@@ -924,7 +969,7 @@ namespace Skotz_Chess_Engine
                         // Long castle
                         clearsquares = Constants.mask_D1 | Constants.mask_C1 | Constants.mask_B1;
                         if (position.w_king == Constants.mask_E1 &&
-                            (position.w_rook & Constants.mask_A1) != 0UL && 
+                            (position.w_rook & Constants.mask_A1) != 0UL &&
                             !IsSquareAttacked(position, Constants.mask_E1, true) &&
                             !IsSquareAttacked(position, Constants.mask_D1, true) &&
                             !IsSquareAttacked(position, Constants.mask_C1, true) &&
@@ -1072,7 +1117,7 @@ namespace Skotz_Chess_Engine
                             {
                                 break;
                             }
-                            
+
                             // En-passant - run BEFORE general capture checking since this won't normally be considered a capture (no piece on target square)
                             if (destination == position.en_passent_square && position.en_passent_square != 0UL)
                             {
