@@ -32,5 +32,26 @@ namespace Skotz_Chess_Engine
 
         // TODO: Maintain a running hash to cut down on time
         // public ulong hash;
+
+        public bool Equals(Board other)
+        {
+            return w_king == other.w_king &&
+                w_queen == other.w_queen &&
+                w_rook == other.w_rook &&
+                w_bishop == other.w_bishop &&
+                w_knight == other.w_knight &&
+                w_pawn == other.w_pawn &&
+                b_king == other.b_king &&
+                b_queen == other.b_queen &&
+                b_rook == other.b_rook &&
+                b_bishop == other.b_bishop &&
+                b_knight == other.b_knight &&
+                b_pawn == other.b_pawn;
+        }
+
+        public bool WhiteToPlay()
+        {
+            return (flags & Constants.flag_white_to_move) != 0UL;
+        }
     }
 }

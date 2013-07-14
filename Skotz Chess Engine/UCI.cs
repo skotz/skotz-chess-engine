@@ -34,11 +34,14 @@ namespace Skotz_Chess_Engine
             bool go = false;
             bool quit = false;
 
+            int move_time_seconds = 10;
+            int move_depth = 99;
+
             do
             {
                 if (go)
                 {
-                    Move best = game.GetBestMove();
+                    Move best = game.GetBestMove(move_time_seconds, move_depth);
                     game.MakeMove(best);
 
                     Console.WriteLine("bestmove " + best.ToString());
@@ -141,25 +144,23 @@ namespace Skotz_Chess_Engine
                         {
                             go = true;
 
-                            //try
-                            //{
-                            //    if (cmd.Split(' ')[1] == "movetime")
-                            //    {
-                            //        time = Int32.Parse(cmd.Split(' ')[2]) / 1000;
-                            //        depth = 99;
-                            //        Console.WriteLine("~time = " + time.ToString());
-                            //    }
-                            //    if (cmd.Split(' ')[1] == "depth")
-                            //    {
-                            //        time = 999999;
-                            //        depth = Int32.Parse(cmd.Split(' ')[2]) / 2;
-                            //        Console.WriteLine("~depth = " + depth);
-                            //    }
-                            //}
-                            //catch (Exception ex)
-                            //{
-                            //    Console.WriteLine(ex.ToString());
-                            //}
+                            try
+                            {
+                                if (cmd.Split(' ')[1] == "movetime")
+                                {
+                                    move_time_seconds = int.Parse(cmd.Split(' ')[2]) / 1000;
+                                    move_depth = 99;
+                                }
+                                if (cmd.Split(' ')[1] == "depth")
+                                {
+                                    move_time_seconds = 999999;
+                                    move_depth = int.Parse(cmd.Split(' ')[2]);
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine(ex.ToString());
+                            }
 
                             break;
                         }
