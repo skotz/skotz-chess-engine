@@ -26,6 +26,12 @@ namespace Skotz_Chess_Engine
         private const int evaluations_max = 256 * 256 * 8;
         private const ulong evaluations_max_mask = evaluations_max - 1;
 
+        // Material hash table
+        private int[] material_eval;
+        private Board[] material_positions;
+        private const int material_max = 256 * 256;
+        private const ulong material_max_mask = material_max - 1;
+
         private int time_per_move;
         private int depth_per_move;
 
@@ -36,6 +42,9 @@ namespace Skotz_Chess_Engine
 
             evaluations = new Move[evaluations_max];
             evaluations_positions = new Board[evaluations_max];
+
+            material_eval = new int[material_max];
+            material_positions = new Board[material_max];
         }
 
         public void ResetBoard()
@@ -583,7 +592,7 @@ namespace Skotz_Chess_Engine
             timer.Elapsed += new ElapsedEventHandler(timer_Elapsed);
             timer.Start();
 
-            Move[] all_moves = new Move[256];
+            List<Move> all_moves = new List<Move>();
             int moves_count = 0;
 
             // Iterative deepening
@@ -629,7 +638,7 @@ namespace Skotz_Chess_Engine
                             " nodes " + evals);
         }
 
-        private Move GetBestMove(ref Board position, int depth, int alpha, int beta, int selective, Move[] all_moves, ref int all_moves_count, bool all_moves_update, bool firstlevel = false)
+        private Move GetBestMove(ref Board position, int depth, int alpha, int beta, int selective, List<Move> all_moves, ref int all_moves_count, bool all_moves_update, bool firstlevel = false)
         {
             // Stop calculating and toss any results
             if (cutoff)
@@ -664,7 +673,7 @@ namespace Skotz_Chess_Engine
             bool white_to_play = (position.flags & Constants.flag_white_to_move) != 0UL;
 
             int count;
-            Move[] moves;
+            List<Move> moves;
             if (all_moves_count > 0)
             {
                 moves = all_moves;
@@ -683,7 +692,7 @@ namespace Skotz_Chess_Engine
             bool improved = false;
             int zero = 0;
 
-            for (int move_num = 0; move_num < count; move_num++)
+            for (int move_num = 0; move_num < moves.Count; move_num++)
             {
                 // Limit to captures for selective searches
                 if ((moves[move_num].flags & Constants.move_flag_is_capture) == 0UL && depth <= 0)
@@ -738,8 +747,16 @@ namespace Skotz_Chess_Engine
                 if (all_moves_update)
                 {
                     all_moves_count = count;
-                    all_moves[move_num] = moves[move_num];
-                    all_moves[move_num].evaluation = testmove.evaluation;
+                    Move m2 = moves[move_num];
+                    m2.evaluation = testmove.evaluation;
+                    if (all_moves.Count <= move_num)
+                    {
+                        all_moves.Add(m2);
+                    }
+                    else
+                    {
+                        all_moves[move_num] = m2;
+                    }
                 }
 
                 // Compute fastest mate by reducing score through levels
@@ -911,7 +928,7 @@ namespace Skotz_Chess_Engine
             }
 
             // Evaluate pawn structure
-            // TODO
+            EvaluatePawnStructure(ref position, ref eval);
 
             // Evaluate piece mobility
             // TODO
@@ -921,9 +938,13 @@ namespace Skotz_Chess_Engine
             return eval;
         }
 
+        private static void EvaluatePawnStructure(ref Board position, ref int eval)
+        {
+
+        }
+
         private static void EvaluateDevelopment(ref Board position, ref int eval)
         {
-            // Evaluate development
             eval -= (position.w_bishop & Constants.mask_F1) != 0UL ? Constants.eval_develop_piece : 0;
             eval -= (position.w_bishop & Constants.mask_C1) != 0UL ? Constants.eval_develop_piece : 0;
             eval -= (position.w_knight & Constants.mask_G1) != 0UL ? Constants.eval_develop_piece : 0;
@@ -948,41 +969,60 @@ namespace Skotz_Chess_Engine
         //    eval -= (position.b_king & Constants.king_safety_best_ranks) != 0UL ? Constants.king_safety_best_ranks_centipawns : 0;
         //}
 
-        private static void EvaluateMaterial(ref Board position, ref int eval)
+        private void EvaluateMaterial(ref Board position, ref int eval)
         {
-            eval += Utility.CountBits(position.w_king) * Constants.eval_king;
-            eval += Utility.CountBits(position.w_queen) * Constants.eval_queen;
-            eval += Utility.CountBits(position.w_rook) * Constants.eval_rook;
-            eval += Utility.CountBits(position.w_bishop) * Constants.eval_bishop;
-            eval += Utility.CountBits(position.w_knight) * Constants.eval_knight;
-            eval += Utility.CountBits(position.w_pawn) * Constants.eval_pawn;
+            int diff = 0;
 
-            eval -= Utility.CountBits(position.b_king) * Constants.eval_king;
-            eval -= Utility.CountBits(position.b_queen) * Constants.eval_queen;
-            eval -= Utility.CountBits(position.b_rook) * Constants.eval_rook;
-            eval -= Utility.CountBits(position.b_bishop) * Constants.eval_bishop;
-            eval -= Utility.CountBits(position.b_knight) * Constants.eval_knight;
-            eval -= Utility.CountBits(position.b_pawn) * Constants.eval_pawn;
+            //// See if we can look up a previous calculation first
+            //ulong hash = GetPositionHash(ref position);
+            //ulong key = hash & material_max_mask;
+            //int saved_eval = material_eval[key];
+
+            //if (material_positions[key].Equals(position))
+            //{
+            //    diff = saved_eval;
+            //}
+            //else
+            //{
+                diff += Utility.CountBits(position.w_king) * Constants.eval_king;
+                diff += Utility.CountBits(position.w_queen) * Constants.eval_queen;
+                diff += Utility.CountBits(position.w_rook) * Constants.eval_rook;
+                diff += Utility.CountBits(position.w_bishop) * Constants.eval_bishop;
+                diff += Utility.CountBits(position.w_knight) * Constants.eval_knight;
+                diff += Utility.CountBits(position.w_pawn) * Constants.eval_pawn;
+
+                diff -= Utility.CountBits(position.b_king) * Constants.eval_king;
+                diff -= Utility.CountBits(position.b_queen) * Constants.eval_queen;
+                diff -= Utility.CountBits(position.b_rook) * Constants.eval_rook;
+                diff -= Utility.CountBits(position.b_bishop) * Constants.eval_bishop;
+                diff -= Utility.CountBits(position.b_knight) * Constants.eval_knight;
+                diff -= Utility.CountBits(position.b_pawn) * Constants.eval_pawn;
+
+            //    // Save the calculation
+            //    material_eval[key] = diff;
+            //    material_positions[key] = position;
+            //}
+
+            eval += diff;
         }
 
         public Move GetRandomMove()
         {
             int count;
-            Move[] moves = GetAllMoves(board, out count);
-            List<Move> all = moves.ToList().Where(x => x.mask_from != 0).ToList();
+            List<Move> moves = GetAllMoves(board, out count);
             Random r = new Random();
 
-            while (all.Count > 0)
+            while (moves.Count > 0)
             {
-                int i = r.Next(all.Count);
-                Move m = all[i];
+                int i = r.Next(moves.Count);
+                Move m = moves[i];
                 if (TestMove(m))
                 {
                     return m;
                 }
                 else
                 {
-                    all.RemoveAt(i);
+                    moves.RemoveAt(i);
                 }
             }
 
@@ -990,14 +1030,26 @@ namespace Skotz_Chess_Engine
             return new Move();
         }
 
-        public Move[] GetAllMoves(Board position, out int moves_count, bool capturesOnly = false)
+        public List<Move> GetAllMoves(Board position, out int moves_count, bool capturesOnly = false)
         {
-            Move[] moves = new Move[256];
-            int index = 0;
+            List<Move> moves = new List<Move>();
 
             ulong square_mask;
             ulong my_pieces;
             ulong enemy_pieces;
+
+            // Is it white to move?
+            if ((position.flags & Constants.flag_white_to_move) != 0UL)
+            {
+                // Get masks of all pieces
+                my_pieces = position.w_king | position.w_queen | position.w_rook | position.w_bishop | position.w_knight | position.w_pawn;
+                enemy_pieces = position.b_king | position.b_queen | position.b_rook | position.b_bishop | position.b_knight | position.b_pawn;
+            }
+            else
+            {
+                enemy_pieces = position.w_king | position.w_queen | position.w_rook | position.w_bishop | position.w_knight | position.w_pawn;
+                my_pieces = position.b_king | position.b_queen | position.b_rook | position.b_bishop | position.b_knight | position.b_pawn;
+            }
 
             for (int square = 0; square < 64; square++)
             {
@@ -1006,95 +1058,87 @@ namespace Skotz_Chess_Engine
                 // Is it white to move?
                 if ((position.flags & Constants.flag_white_to_move) != 0UL)
                 {
-                    // Get masks of all pieces
-                    my_pieces = position.w_king | position.w_queen | position.w_rook | position.w_bishop | position.w_knight | position.w_pawn;
-                    enemy_pieces = position.b_king | position.b_queen | position.b_rook | position.b_bishop | position.b_knight | position.b_pawn;
-
                     // King
                     if ((position.w_king & square_mask) != 0UL)
                     {
-                        GetMovesForPiece(ref moves, ref position, ref index, square, square_mask, Constants.piece_K, my_pieces, enemy_pieces, true, capturesOnly);
+                        GetMovesForPiece(ref moves, ref position, square, square_mask, Constants.piece_K, my_pieces, enemy_pieces, true, capturesOnly);
                     }
 
                     // Queen
                     else if ((position.w_queen & square_mask) != 0UL)
                     {
-                        GetMovesForPiece(ref moves, ref position, ref index, square, square_mask, Constants.piece_Q, my_pieces, enemy_pieces, true, capturesOnly);
+                        GetMovesForPiece(ref moves, ref position, square, square_mask, Constants.piece_Q, my_pieces, enemy_pieces, true, capturesOnly);
                     }
 
                     // Rook
                     else if ((position.w_rook & square_mask) != 0UL)
                     {
-                        GetMovesForPiece(ref moves, ref position, ref index, square, square_mask, Constants.piece_R, my_pieces, enemy_pieces, true, capturesOnly);
+                        GetMovesForPiece(ref moves, ref position, square, square_mask, Constants.piece_R, my_pieces, enemy_pieces, true, capturesOnly);
                     }
 
                     // Bishop
                     else if ((position.w_bishop & square_mask) != 0UL)
                     {
-                        GetMovesForPiece(ref moves, ref position, ref index, square, square_mask, Constants.piece_B, my_pieces, enemy_pieces, true, capturesOnly);
+                        GetMovesForPiece(ref moves, ref position, square, square_mask, Constants.piece_B, my_pieces, enemy_pieces, true, capturesOnly);
                     }
 
                     // Knight
                     else if ((position.w_knight & square_mask) != 0UL)
                     {
-                        GetMovesForPiece(ref moves, ref position, ref index, square, square_mask, Constants.piece_N, my_pieces, enemy_pieces, true, capturesOnly);
+                        GetMovesForPiece(ref moves, ref position, square, square_mask, Constants.piece_N, my_pieces, enemy_pieces, true, capturesOnly);
                     }
 
                     // Pawn
                     else if ((position.w_pawn & square_mask) != 0UL)
                     {
-                        GetMovesForPiece(ref moves, ref position, ref index, square, square_mask, Constants.piece_P, my_pieces, enemy_pieces, true, capturesOnly);
+                        GetMovesForPiece(ref moves, ref position, square, square_mask, Constants.piece_P, my_pieces, enemy_pieces, true, capturesOnly);
                     }
                 }
                 else // Black to move
                 {
-                    // Get masks of all pieces
-                    enemy_pieces = position.w_king | position.w_queen | position.w_rook | position.w_bishop | position.w_knight | position.w_pawn;
-                    my_pieces = position.b_king | position.b_queen | position.b_rook | position.b_bishop | position.b_knight | position.b_pawn;
-
                     // King
                     if ((position.b_king & square_mask) != 0UL)
                     {
-                        GetMovesForPiece(ref moves, ref position, ref index, square, square_mask, Constants.piece_K, my_pieces, enemy_pieces, false, capturesOnly);
+                        GetMovesForPiece(ref moves, ref position, square, square_mask, Constants.piece_K, my_pieces, enemy_pieces, false, capturesOnly);
                     }
 
                     // Queen
                     else if ((position.b_queen & square_mask) != 0UL)
                     {
-                        GetMovesForPiece(ref moves, ref position, ref index, square, square_mask, Constants.piece_Q, my_pieces, enemy_pieces, false, capturesOnly);
+                        GetMovesForPiece(ref moves, ref position, square, square_mask, Constants.piece_Q, my_pieces, enemy_pieces, false, capturesOnly);
                     }
 
                     // Rook
                     else if ((position.b_rook & square_mask) != 0UL)
                     {
-                        GetMovesForPiece(ref moves, ref position, ref index, square, square_mask, Constants.piece_R, my_pieces, enemy_pieces, false, capturesOnly);
+                        GetMovesForPiece(ref moves, ref position, square, square_mask, Constants.piece_R, my_pieces, enemy_pieces, false, capturesOnly);
                     }
 
                     // Bishop
                     else if ((position.b_bishop & square_mask) != 0UL)
                     {
-                        GetMovesForPiece(ref moves, ref position, ref index, square, square_mask, Constants.piece_B, my_pieces, enemy_pieces, false, capturesOnly);
+                        GetMovesForPiece(ref moves, ref position, square, square_mask, Constants.piece_B, my_pieces, enemy_pieces, false, capturesOnly);
                     }
 
                     // Knight
                     else if ((position.b_knight & square_mask) != 0UL)
                     {
-                        GetMovesForPiece(ref moves, ref position, ref index, square, square_mask, Constants.piece_N, my_pieces, enemy_pieces, false, capturesOnly);
+                        GetMovesForPiece(ref moves, ref position, square, square_mask, Constants.piece_N, my_pieces, enemy_pieces, false, capturesOnly);
                     }
 
                     // Pawn
                     else if ((position.b_pawn & square_mask) != 0UL)
                     {
-                        GetMovesForPiece(ref moves, ref position, ref index, square, square_mask, Constants.piece_P, my_pieces, enemy_pieces, false, capturesOnly);
+                        GetMovesForPiece(ref moves, ref position, square, square_mask, Constants.piece_P, my_pieces, enemy_pieces, false, capturesOnly);
                     }
                 }
             }
 
-            moves_count = index;
+            moves_count = moves.Count;
             return moves;
         }
 
-        private void GetMovesForPiece(ref Move[] moves, ref Board position, ref int move_index, int square, ulong square_mask, int pieceType, ulong my_pieces, ulong enemy_pieces, bool white_to_play, bool capturesOnly)
+        private void GetMovesForPiece(ref List<Move> moves, ref Board position, int square, ulong square_mask, int pieceType, ulong my_pieces, ulong enemy_pieces, bool white_to_play, bool capturesOnly)
         {
             ulong destination;
             ulong moveflags;
@@ -1120,13 +1164,13 @@ namespace Skotz_Chess_Engine
                             (my_pieces & clearsquares) == 0UL &&
                             (enemy_pieces & clearsquares) == 0UL)
                         {
-                            moves[move_index++] = new Move()
+                            moves.Add(new Move()
                             {
                                 mask_from = square_mask,
                                 mask_to = Constants.mask_G1,
                                 flags = Constants.move_flag_is_castle_short,
                                 from_piece_type = pieceType
-                            };
+                            });
                         }
                     }
 
@@ -1142,13 +1186,13 @@ namespace Skotz_Chess_Engine
                             (my_pieces & clearsquares) == 0UL &&
                             (enemy_pieces & clearsquares) == 0UL)
                         {
-                            moves[move_index++] = new Move()
+                            moves.Add(new Move()
                             {
                                 mask_from = square_mask,
                                 mask_to = Constants.mask_C1,
                                 flags = Constants.move_flag_is_castle_long,
                                 from_piece_type = pieceType
-                            };
+                            });
                         }
                     }
                 }
@@ -1166,13 +1210,13 @@ namespace Skotz_Chess_Engine
                             (my_pieces & clearsquares) == 0UL &&
                             (enemy_pieces & clearsquares) == 0UL)
                         {
-                            moves[move_index++] = new Move()
+                            moves.Add(new Move()
                             {
                                 mask_from = square_mask,
                                 mask_to = Constants.mask_G8,
                                 flags = Constants.move_flag_is_castle_short,
                                 from_piece_type = pieceType
-                            };
+                            });
                         }
                     }
 
@@ -1188,13 +1232,13 @@ namespace Skotz_Chess_Engine
                             (my_pieces & clearsquares) == 0UL &&
                             (enemy_pieces & clearsquares) == 0UL)
                         {
-                            moves[move_index++] = new Move()
+                            moves.Add(new Move()
                             {
                                 mask_from = square_mask,
                                 mask_to = Constants.mask_C8,
                                 flags = Constants.move_flag_is_castle_long,
                                 from_piece_type = pieceType
-                            };
+                            });
                         }
                     }
                 }
@@ -1328,45 +1372,45 @@ namespace Skotz_Chess_Engine
                     if (promotion)
                     {
                         // Enter all 4 possible promotion types
-                        moves[move_index++] = new Move()
+                        moves.Add(new Move()
                         {
                             mask_from = square_mask,
                             mask_to = destination,
                             flags = moveflags | Constants.move_flag_is_promote_bishop,
                             from_piece_type = pieceType
-                        };
-                        moves[move_index++] = new Move()
+                        });
+                        moves.Add(new Move()
                         {
                             mask_from = square_mask,
                             mask_to = destination,
                             flags = moveflags | Constants.move_flag_is_promote_knight,
                             from_piece_type = pieceType
-                        };
-                        moves[move_index++] = new Move()
+                        });
+                        moves.Add(new Move()
                         {
                             mask_from = square_mask,
                             mask_to = destination,
                             flags = moveflags | Constants.move_flag_is_promote_rook,
                             from_piece_type = pieceType
-                        };
-                        moves[move_index++] = new Move()
+                        });
+                        moves.Add(new Move()
                         {
                             mask_from = square_mask,
                             mask_to = destination,
                             flags = moveflags | Constants.move_flag_is_promote_queen,
                             from_piece_type = pieceType
-                        };
+                        });
                     }
                     else
                     {
                         // Enter a regular move 
-                        moves[move_index++] = new Move()
+                        moves.Add(new Move()
                         {
                             mask_from = square_mask,
                             mask_to = destination,
                             flags = moveflags,
                             from_piece_type = pieceType
-                        };
+                        });
                     }
 
                     // We found a capture searching down this direction, so stop looking further
@@ -1375,8 +1419,6 @@ namespace Skotz_Chess_Engine
                         break;
                     }
                 }
-
-                // TODO: Break out if first element of "m" index above is null
             }
         }
 

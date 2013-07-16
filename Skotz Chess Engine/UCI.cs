@@ -144,7 +144,7 @@ namespace Skotz_Chess_Engine
                         {
                             go = true;
 
-                            try
+                            if (cmd.Split(' ').Length >= 3)
                             {
                                 if (cmd.Split(' ')[1] == "movetime")
                                 {
@@ -156,10 +156,6 @@ namespace Skotz_Chess_Engine
                                     move_time_seconds = 999999;
                                     move_depth = int.Parse(cmd.Split(' ')[2]);
                                 }
-                            }
-                            catch (Exception ex)
-                            {
-                                Console.WriteLine(ex.ToString());
                             }
 
                             break;
