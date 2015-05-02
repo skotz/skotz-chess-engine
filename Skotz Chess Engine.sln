@@ -1,6 +1,6 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Skotz Chess Engine", "Skotz Chess Engine\Skotz Chess Engine.csproj", "{2B96AB27-7CCC-4542-8BB8-4E21FECE1A44}"
 EndProject
 Global

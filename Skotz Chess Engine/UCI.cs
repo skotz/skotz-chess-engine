@@ -13,7 +13,10 @@ namespace Skotz_Chess_Engine
         Game game;
 
         string engine = "Skotz";
-        string version = "v0.2";
+        string version = "v0.2.1";
+
+        bool debugFileCleared = false;
+        Queue<string> testInput = new Queue<string>();
 
         public UCI()
         {
@@ -52,7 +55,16 @@ namespace Skotz_Chess_Engine
                 // Wait for other player
                 do
                 {
-                    string cmd = Console.ReadLine();
+                    string cmd = "";
+                    
+                    if (testInput.Count > 0)
+                    {
+                        cmd = testInput.Dequeue();
+                    }
+                    else                        
+                    {
+                        cmd = Console.ReadLine();
+                    }
 
                     AppendToDebugFile(player, cmd);
 
@@ -80,6 +92,16 @@ namespace Skotz_Chess_Engine
                         if (cmd == "isready")
                         {
                             Console.WriteLine("readyok");
+                        }
+
+                        // For debugging exact positions
+                        if (cmd == "test")
+                        {
+                            foreach (string line in File.ReadAllLines("test.txt"))
+                            {
+                                testInput.Enqueue(line);
+                                Console.WriteLine(">>> " + line);
+                            }
                         }
 
                         if (cmd.StartsWith("ucinewgame"))
@@ -180,7 +202,7 @@ namespace Skotz_Chess_Engine
             } while (!quit);
         }
 
-        private static void AppendToDebugFile(bool player, string cmd)
+        private void AppendToDebugFile(bool player, string cmd)
         {
             for (int tries = 3; tries >= 0; tries--)
             {
@@ -189,6 +211,11 @@ namespace Skotz_Chess_Engine
                     StreamWriter w = new StreamWriter((player ? "W" : "B") + ".out.txt", true);
                     w.WriteLine(cmd);
                     w.Close();
+
+                    StreamWriter a = new StreamWriter("all.out.txt", debugFileCleared);
+                    a.WriteLine(cmd);
+                    a.Close();
+                    debugFileCleared = true;
 
                     break;
                 }

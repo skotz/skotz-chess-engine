@@ -234,6 +234,7 @@ namespace Skotz_Chess_Engine
             ulong enemy_pieces_cross;
             ulong enemy_pieces_knight;
             ulong enemy_pieces_pawn;
+            ulong enemy_pieces_king;
             ulong enemy_all;
 
             // Are we checking to see if black pieces are attacking one of white's squares?
@@ -241,24 +242,26 @@ namespace Skotz_Chess_Engine
             {
                 // Get masks of all pieces
                 my_pieces = position.w_king | position.w_queen | position.w_rook | position.w_bishop | position.w_knight | position.w_pawn;
-                enemy_pieces_diag = position.b_bishop | position.b_queen | position.b_king;
-                enemy_pieces_cross = position.b_rook | position.b_queen | position.b_king;
+                enemy_pieces_diag = position.b_bishop | position.b_queen;
+                enemy_pieces_cross = position.b_rook | position.b_queen;
                 enemy_pieces_knight = position.b_knight;
                 enemy_pieces_pawn = position.b_pawn;
+                enemy_pieces_king = position.b_king;
             }
             else // Black to move
             {
                 // Get masks of all pieces
                 my_pieces = position.b_king | position.b_queen | position.b_rook | position.b_bishop | position.b_knight | position.b_pawn;
-                enemy_pieces_diag = position.w_bishop | position.w_queen | position.w_king;
-                enemy_pieces_cross = position.w_rook | position.w_queen | position.w_king;
+                enemy_pieces_diag = position.w_bishop | position.w_queen ;
+                enemy_pieces_cross = position.w_rook | position.w_queen;
                 enemy_pieces_knight = position.w_knight;
                 enemy_pieces_pawn = position.w_pawn;
+                enemy_pieces_king = position.w_king;
             }
 
-            enemy_all = enemy_pieces_diag | enemy_pieces_cross | enemy_pieces_knight | enemy_pieces_pawn;
+            enemy_all = enemy_pieces_diag | enemy_pieces_cross | enemy_pieces_knight | enemy_pieces_pawn | enemy_pieces_king;
 
-            return CanBeCaptured(square_mask, my_pieces, enemy_pieces_diag, enemy_pieces_cross, enemy_pieces_knight, enemy_pieces_pawn, enemy_all, origin_is_white_player);
+            return CanBeCaptured(square_mask, my_pieces, enemy_pieces_diag, enemy_pieces_cross, enemy_pieces_knight, enemy_pieces_pawn, enemy_pieces_king, enemy_all, origin_is_white_player);
         }
 
         public int GetPieceTypeOfSquare(Board position, ulong square_mask)
@@ -1422,10 +1425,40 @@ namespace Skotz_Chess_Engine
             }
         }
 
-        private bool CanBeCaptured(ulong square_mask, ulong my_pieces, ulong enemy_diag, ulong enemy_cross, ulong enemy_knight, ulong enemy_pawn, ulong enemy_all, bool source_is_white_piece)
+        private bool CanBeCaptured(ulong square_mask, ulong my_pieces, ulong enemy_diag, ulong enemy_cross, ulong enemy_knight, ulong enemy_pawn, ulong enemy_king, ulong enemy_all, bool source_is_white_piece)
         {
             ulong destination;
             int from_square = Utility.GetIndexFromMask(square_mask);
+
+            // Check for king captures
+            for (int d = 0; d < 8; d++)
+            {
+                destination = Constants.movements[from_square, Constants.piece_K, d, 0];
+
+                // End of move chain?
+                if (destination == Constants.NULL)
+                {
+                    break;
+                }
+
+                // Do we already have one of our own pieces on this square?
+                if ((destination & my_pieces) != 0UL)
+                {
+                    break;
+                }
+
+                // Is this move a capture?
+                if ((destination & enemy_king) != 0UL)
+                {
+                    return true;
+                }
+
+                // Is this hitting any other random enemy piece that can't attack us?
+                if ((destination & enemy_all) != 0UL)
+                {
+                    break;
+                }
+            }
 
             // Check for diagonal captures
             for (int d = 0; d < 4; d++)
