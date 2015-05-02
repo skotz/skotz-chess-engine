@@ -89,7 +89,7 @@ namespace Skotz_Chess_Engine
             #region Side To Move
 
             string sidetomove = parts[1];
-            if (sidetomove == "W")
+            if (sidetomove.ToLower() == "w")
             {
                 board.flags |= Constants.flag_white_to_move;
             }
