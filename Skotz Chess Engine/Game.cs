@@ -35,6 +35,8 @@ namespace Skotz_Chess_Engine
         private int time_per_move;
         private int depth_per_move;
 
+        private bool silent = false;
+
         public Game()
         {
             board = new Board();
@@ -579,6 +581,48 @@ namespace Skotz_Chess_Engine
             }
         }
 
+        public string GetAlgebraicNotation(Move move)
+        {
+            string piece = "";
+            switch (move.from_piece_type)
+            {
+                case Constants.piece_K:
+                    piece = "K";
+                    break;
+                case Constants.piece_Q:
+                    piece = "Q";
+                    break;
+                case Constants.piece_N:
+                    piece = "N";
+                    break;
+                case Constants.piece_B:
+                    piece = "B";
+                    break;
+                case Constants.piece_R:
+                    piece = "R";
+                    break;
+                case Constants.piece_P:
+                    piece = "";
+                    break;
+            }
+            
+            ulong black = (board.b_king | board.b_queen | board.b_rook | board.b_bishop | board.b_knight | board.b_pawn) & move.mask_to;
+            ulong white = (board.w_king | board.w_queen | board.w_rook | board.w_bishop | board.w_knight | board.w_pawn) & move.mask_to;
+            string capture = black != 0UL || white != 0UL ? "x" : "";
+
+            string dest = move.ToString().Substring(2);
+
+            string check = "";
+            Board temp = board;
+            MakeMove(ref temp, move);
+            if (IsSquareAttacked(temp, board.w_king, true) || IsSquareAttacked(temp, board.b_king, false))
+            {
+                check = "+";
+            }
+
+            return piece + capture + dest + check;
+        }
+
         public Move GetBestMove(int seconds = -1, int search_depth = -1)
         {
             stopwatch = Stopwatch.StartNew();
@@ -637,8 +681,11 @@ namespace Skotz_Chess_Engine
             }
 
             long nps = (long)((double)evals / ((double)stopwatch.ElapsedMilliseconds / 1000.0));
-            Console.WriteLine("info nps " + nps +
-                            " nodes " + evals);
+
+            if (!silent)
+            {
+                Console.WriteLine("info nps " + nps + " nodes " + evals);
+            }
         }
 
         private Move GetBestMove(ref Board position, int depth, int alpha, int beta, int selective, List<Move> all_moves, ref int all_moves_count, bool all_moves_update, bool firstlevel = false)
@@ -810,7 +857,7 @@ namespace Skotz_Chess_Engine
                 // Display some stats if we are at the base level of recursion
                 if (firstlevel && !cutoff && improved)
                 {
-                    if (improved)
+                    if (improved && !silent)
                     {
                         Console.WriteLine("info score cp " + bestmove.evaluation +
                             " depth " + (depth / 2) +
@@ -1605,6 +1652,11 @@ namespace Skotz_Chess_Engine
                 }
             }
             return false;
+        }
+
+        public void Silence()
+        {
+            silent = true;
         }
     }
 }

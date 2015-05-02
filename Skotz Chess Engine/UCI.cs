@@ -104,6 +104,13 @@ namespace Skotz_Chess_Engine
                             }
                         }
 
+                        // For testing the engine with the WAC test suite
+                        if (cmd == "wac")
+                        {
+                            PositionTester tester = new PositionTester();
+                            tester.RunTests();
+                        }
+
                         if (cmd.StartsWith("ucinewgame"))
                         {
                             player = true;
