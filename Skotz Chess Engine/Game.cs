@@ -1,15 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Diagnostics;
+using System.Linq;
 using System.Timers;
 
 // Scott Clayton 2013
 
 namespace Skotz_Chess_Engine
 {
-    class Game
+    internal class Game
     {
         public Board board;
 
@@ -22,12 +21,14 @@ namespace Skotz_Chess_Engine
 
         // Transposition table
         private Move[] evaluations;
+
         private Board[] evaluations_positions;
         private const int evaluations_max = 256 * 256 * 8;
         private const ulong evaluations_max_mask = evaluations_max - 1;
 
         // Material hash table
         private int[] material_eval;
+
         private Board[] material_positions;
         private const int material_max = 256 * 256;
         private const ulong material_max_mask = material_max - 1;
@@ -254,7 +255,7 @@ namespace Skotz_Chess_Engine
             {
                 // Get masks of all pieces
                 my_pieces = position.b_king | position.b_queen | position.b_rook | position.b_bishop | position.b_knight | position.b_pawn;
-                enemy_pieces_diag = position.w_bishop | position.w_queen ;
+                enemy_pieces_diag = position.w_bishop | position.w_queen;
                 enemy_pieces_cross = position.w_rook | position.w_queen;
                 enemy_pieces_knight = position.w_knight;
                 enemy_pieces_pawn = position.w_pawn;
@@ -387,10 +388,12 @@ namespace Skotz_Chess_Engine
                         position.flags &= ~Constants.flag_castle_white_king;
 
                         break;
+
                     case Constants.piece_Q:
                         position.w_queen &= ~move.mask_from;
                         position.w_queen |= move.mask_to;
                         break;
+
                     case Constants.piece_R:
                         position.w_rook &= ~move.mask_from;
                         position.w_rook |= move.mask_to;
@@ -405,18 +408,21 @@ namespace Skotz_Chess_Engine
                             position.flags &= ~Constants.flag_castle_white_king;
                         }
                         break;
+
                     case Constants.piece_B:
                         position.w_bishop &= ~move.mask_from;
                         position.w_bishop |= move.mask_to;
                         break;
+
                     case Constants.piece_N:
                         position.w_knight &= ~move.mask_from;
                         position.w_knight |= move.mask_to;
                         break;
+
                     case Constants.piece_P:
                         position.w_pawn &= ~move.mask_from;
 
-                        // Is this a 2 square jump? Set the en-passent square 
+                        // Is this a 2 square jump? Set the en-passent square
                         if (move.mask_to == (move.mask_from << 16))
                         {
                             position.en_passent_square = move.mask_from << 8;
@@ -502,10 +508,12 @@ namespace Skotz_Chess_Engine
                         position.flags &= ~Constants.flag_castle_black_king;
                         position.flags &= ~Constants.flag_castle_black_queen;
                         break;
+
                     case Constants.piece_Q:
                         position.b_queen &= ~move.mask_from;
                         position.b_queen |= move.mask_to;
                         break;
+
                     case Constants.piece_R:
                         position.b_rook &= ~move.mask_from;
                         position.b_rook |= move.mask_to;
@@ -520,14 +528,17 @@ namespace Skotz_Chess_Engine
                             position.flags &= ~Constants.flag_castle_black_king;
                         }
                         break;
+
                     case Constants.piece_B:
                         position.b_bishop &= ~move.mask_from;
                         position.b_bishop |= move.mask_to;
                         break;
+
                     case Constants.piece_N:
                         position.b_knight &= ~move.mask_from;
                         position.b_knight |= move.mask_to;
                         break;
+
                     case Constants.piece_P:
                         position.b_pawn &= ~move.mask_from;
 
@@ -589,23 +600,28 @@ namespace Skotz_Chess_Engine
                 case Constants.piece_K:
                     piece = "K";
                     break;
+
                 case Constants.piece_Q:
                     piece = "Q";
                     break;
+
                 case Constants.piece_N:
                     piece = "N";
                     break;
+
                 case Constants.piece_B:
                     piece = "B";
                     break;
+
                 case Constants.piece_R:
                     piece = "R";
                     break;
+
                 case Constants.piece_P:
                     piece = "";
                     break;
             }
-            
+
             ulong black = (board.b_king | board.b_queen | board.b_rook | board.b_bishop | board.b_knight | board.b_pawn) & move.mask_to;
             ulong white = (board.w_king | board.w_queen | board.w_rook | board.w_bishop | board.w_knight | board.w_pawn) & move.mask_to;
             string capture = black != 0UL || white != 0UL ? "x" : "";
@@ -673,7 +689,7 @@ namespace Skotz_Chess_Engine
             return best;
         }
 
-        void timer_Elapsed(object sender, ElapsedEventArgs e)
+        private void timer_Elapsed(object sender, ElapsedEventArgs e)
         {
             if (stopwatch.ElapsedMilliseconds > time_per_move * 1000)
             {
@@ -699,17 +715,17 @@ namespace Skotz_Chess_Engine
             int startevals = evals;
 
             // See if we can look up a previous calculation first
-            ulong hash1 = GetPositionHash(ref position);
-            ulong key1 = hash1 & evaluations_max_mask;
-            Move m = evaluations[key1];
-            if (m.depth >= depth && m.selective == (depth < 0))
-            {
-                if (evaluations_positions[key1].Equals(position))
-                {
-                    // evals += m.evals;
-                    return m;
-                }
-            }
+            //ulong hash1 = GetPositionHash(ref position);
+            //ulong key1 = hash1 & evaluations_max_mask;
+            //Move m = evaluations[key1];
+            //if (m.depth >= depth && m.selective == (depth < 0))
+            //{
+            //    if (evaluations_positions[key1].Equals(position))
+            //    {
+            //        // evals += m.evals;
+            //        return m;
+            //    }
+            //}
 
             // Reached max depth of search
             if (depth <= 0 && selective <= 0)
@@ -828,12 +844,12 @@ namespace Skotz_Chess_Engine
                         bestmove.primary_variation = moves[move_num].ToString() + " " + testmove.primary_variation;
                         set = true;
                         improved = true;
+                    }
 
-                        alpha = testmove.evaluation;
-                        if (beta <= alpha)
-                        {
-                            break;
-                        }
+                    alpha = Math.Max(alpha, testmove.evaluation);
+                    if (beta <= alpha)
+                    {
+                        break;
                     }
                 }
                 else
@@ -845,12 +861,12 @@ namespace Skotz_Chess_Engine
                         bestmove.primary_variation = moves[move_num].ToString() + " " + testmove.primary_variation;
                         set = true;
                         improved = true;
+                    }
 
-                        beta = testmove.evaluation;
-                        if (beta <= alpha)
-                        {
-                            break;
-                        }
+                    beta = Math.Min(beta, testmove.evaluation);
+                    if (beta <= alpha)
+                    {
+                        break;
                     }
                 }
 
@@ -881,8 +897,8 @@ namespace Skotz_Chess_Engine
             bestmove.depth = depth;
             bestmove.evals = evals - startevals;
             bestmove.selective = depth < 0;
-            evaluations[key1] = bestmove;
-            evaluations_positions[key1] = position;
+            //evaluations[key1] = bestmove;
+            //evaluations_positions[key1] = position;
 
             if (depth < 0)
             {
@@ -912,11 +928,35 @@ namespace Skotz_Chess_Engine
             int eval = Utility.Rand.Next(3) - 1;
             evals++;
 
-            ulong square_mask;
-
             EvaluateMaterial(ref position, ref eval);
 
             EvaluateDevelopment(ref position, ref eval);
+
+            eval += EvaluatePiecePlacement(ref position);
+
+            EvaluatePawnStructure(ref position, ref eval);
+
+            // eval += (int)(EvaluateMobility(ref position) * 0.5);
+
+            //evaluations.Add(hash, eval);
+
+            return eval;
+        }
+
+        private int EvaluateMobility(ref Board position)
+        {
+            int eval = 0;
+
+            eval += CountAllMoves(position, true);
+            eval -= CountAllMoves(position, false);
+
+            return eval;
+        }
+
+        private static int EvaluatePiecePlacement(ref Board position)
+        {
+            ulong square_mask;
+            int eval = 0;
 
             // Evaluate piece placement
             for (int square = 0; square < 64; square++)
@@ -977,20 +1017,11 @@ namespace Skotz_Chess_Engine
                 }
             }
 
-            // Evaluate pawn structure
-            EvaluatePawnStructure(ref position, ref eval);
-
-            // Evaluate piece mobility
-            // TODO
-
-            //evaluations.Add(hash, eval);
-
             return eval;
         }
 
         private static void EvaluatePawnStructure(ref Board position, ref int eval)
         {
-
         }
 
         private static void EvaluateDevelopment(ref Board position, ref int eval)
@@ -1034,19 +1065,19 @@ namespace Skotz_Chess_Engine
             //}
             //else
             //{
-                diff += Utility.CountBits(position.w_king) * Constants.eval_king;
-                diff += Utility.CountBits(position.w_queen) * Constants.eval_queen;
-                diff += Utility.CountBits(position.w_rook) * Constants.eval_rook;
-                diff += Utility.CountBits(position.w_bishop) * Constants.eval_bishop;
-                diff += Utility.CountBits(position.w_knight) * Constants.eval_knight;
-                diff += Utility.CountBits(position.w_pawn) * Constants.eval_pawn;
+            diff += Utility.CountBits(position.w_king) * Constants.eval_king;
+            diff += Utility.CountBits(position.w_queen) * Constants.eval_queen;
+            diff += Utility.CountBits(position.w_rook) * Constants.eval_rook;
+            diff += Utility.CountBits(position.w_bishop) * Constants.eval_bishop;
+            diff += Utility.CountBits(position.w_knight) * Constants.eval_knight;
+            diff += Utility.CountBits(position.w_pawn) * Constants.eval_pawn;
 
-                diff -= Utility.CountBits(position.b_king) * Constants.eval_king;
-                diff -= Utility.CountBits(position.b_queen) * Constants.eval_queen;
-                diff -= Utility.CountBits(position.b_rook) * Constants.eval_rook;
-                diff -= Utility.CountBits(position.b_bishop) * Constants.eval_bishop;
-                diff -= Utility.CountBits(position.b_knight) * Constants.eval_knight;
-                diff -= Utility.CountBits(position.b_pawn) * Constants.eval_pawn;
+            diff -= Utility.CountBits(position.b_king) * Constants.eval_king;
+            diff -= Utility.CountBits(position.b_queen) * Constants.eval_queen;
+            diff -= Utility.CountBits(position.b_rook) * Constants.eval_rook;
+            diff -= Utility.CountBits(position.b_bishop) * Constants.eval_bishop;
+            diff -= Utility.CountBits(position.b_knight) * Constants.eval_knight;
+            diff -= Utility.CountBits(position.b_pawn) * Constants.eval_pawn;
 
             //    // Save the calculation
             //    material_eval[key] = diff;
@@ -1078,6 +1109,112 @@ namespace Skotz_Chess_Engine
 
             // Checkmate
             return new Move();
+        }
+
+        public int CountAllMoves(Board position, bool whiteToMove)
+        {
+            ulong square_mask;
+            ulong my_pieces;
+            ulong enemy_pieces;
+            int movesCount = 0;
+
+            // Is it white to move?
+            if (whiteToMove)
+            {
+                // Get masks of all pieces
+                my_pieces = position.w_king | position.w_queen | position.w_rook | position.w_bishop | position.w_knight | position.w_pawn;
+                enemy_pieces = position.b_king | position.b_queen | position.b_rook | position.b_bishop | position.b_knight | position.b_pawn;
+            }
+            else
+            {
+                enemy_pieces = position.w_king | position.w_queen | position.w_rook | position.w_bishop | position.w_knight | position.w_pawn;
+                my_pieces = position.b_king | position.b_queen | position.b_rook | position.b_bishop | position.b_knight | position.b_pawn;
+            }
+
+            for (int square = 0; square < 64; square++)
+            {
+                square_mask = Constants.bit_index_to_mask[square];
+
+                // Is it white to move?
+                if (whiteToMove)
+                {
+                    // King
+                    if ((position.w_king & square_mask) != 0UL)
+                    {
+                        movesCount += CountMovesForPiece(ref position, square, square_mask, Constants.piece_K, my_pieces, enemy_pieces, true);
+                    }
+
+                    // Queen
+                    else if ((position.w_queen & square_mask) != 0UL)
+                    {
+                        movesCount += CountMovesForPiece(ref position, square, square_mask, Constants.piece_Q, my_pieces, enemy_pieces, true);
+                    }
+
+                    // Rook
+                    else if ((position.w_rook & square_mask) != 0UL)
+                    {
+                        movesCount += CountMovesForPiece(ref position, square, square_mask, Constants.piece_R, my_pieces, enemy_pieces, true);
+                    }
+
+                    // Bishop
+                    else if ((position.w_bishop & square_mask) != 0UL)
+                    {
+                        movesCount += CountMovesForPiece(ref position, square, square_mask, Constants.piece_B, my_pieces, enemy_pieces, true);
+                    }
+
+                    // Knight
+                    else if ((position.w_knight & square_mask) != 0UL)
+                    {
+                        movesCount += CountMovesForPiece(ref position, square, square_mask, Constants.piece_N, my_pieces, enemy_pieces, true);
+                    }
+
+                    // Pawn
+                    else if ((position.w_pawn & square_mask) != 0UL)
+                    {
+                        movesCount += CountMovesForPiece(ref position, square, square_mask, Constants.piece_P, my_pieces, enemy_pieces, true);
+                    }
+                }
+                else // Black to move
+                {
+                    // King
+                    if ((position.b_king & square_mask) != 0UL)
+                    {
+                        movesCount += CountMovesForPiece(ref position, square, square_mask, Constants.piece_K, my_pieces, enemy_pieces, false);
+                    }
+
+                    // Queen
+                    else if ((position.b_queen & square_mask) != 0UL)
+                    {
+                        movesCount += CountMovesForPiece(ref position, square, square_mask, Constants.piece_Q, my_pieces, enemy_pieces, false);
+                    }
+
+                    // Rook
+                    else if ((position.b_rook & square_mask) != 0UL)
+                    {
+                        movesCount += CountMovesForPiece(ref position, square, square_mask, Constants.piece_R, my_pieces, enemy_pieces, false);
+                    }
+
+                    // Bishop
+                    else if ((position.b_bishop & square_mask) != 0UL)
+                    {
+                        movesCount += CountMovesForPiece(ref position, square, square_mask, Constants.piece_B, my_pieces, enemy_pieces, false);
+                    }
+
+                    // Knight
+                    else if ((position.b_knight & square_mask) != 0UL)
+                    {
+                        movesCount += CountMovesForPiece(ref position, square, square_mask, Constants.piece_N, my_pieces, enemy_pieces, false);
+                    }
+
+                    // Pawn
+                    else if ((position.b_pawn & square_mask) != 0UL)
+                    {
+                        movesCount += CountMovesForPiece(ref position, square, square_mask, Constants.piece_P, my_pieces, enemy_pieces, false);
+                    }
+                }
+            }
+
+            return movesCount;
         }
 
         public List<Move> GetAllMoves(Board position, out int moves_count, bool capturesOnly = false)
@@ -1186,6 +1323,232 @@ namespace Skotz_Chess_Engine
 
             moves_count = moves.Count;
             return moves;
+        }
+
+        private int CountMovesForPiece(ref Board position, int square, ulong square_mask, int pieceType, ulong my_pieces, ulong enemy_pieces, bool white_to_play)
+        {
+            ulong destination;
+            ulong moveflags;
+            ulong clearsquares;
+            bool capture;
+            bool promotion = false;
+            int movesCount = 0;
+
+            // Take care of castling moves for the king
+            // The king cannot castle through check (although the rook may)
+            if (pieceType == Constants.piece_K)
+            {
+                if (white_to_play)
+                {
+                    if ((position.flags & Constants.flag_castle_white_king) != 0UL)
+                    {
+                        // Short castle
+                        clearsquares = Constants.mask_F1 | Constants.mask_G1;
+                        if (position.w_king == Constants.mask_E1 &&
+                            (position.w_rook & Constants.mask_H1) != 0UL &&
+                            !IsSquareAttacked(position, Constants.mask_E1, true) &&
+                            !IsSquareAttacked(position, Constants.mask_F1, true) &&
+                            !IsSquareAttacked(position, Constants.mask_G1, true) &&
+                            (my_pieces & clearsquares) == 0UL &&
+                            (enemy_pieces & clearsquares) == 0UL)
+                        {
+                            movesCount++;
+                        }
+                    }
+
+                    if ((position.flags & Constants.flag_castle_white_queen) != 0UL)
+                    {
+                        // Long castle
+                        clearsquares = Constants.mask_D1 | Constants.mask_C1 | Constants.mask_B1;
+                        if (position.w_king == Constants.mask_E1 &&
+                            (position.w_rook & Constants.mask_A1) != 0UL &&
+                            !IsSquareAttacked(position, Constants.mask_E1, true) &&
+                            !IsSquareAttacked(position, Constants.mask_D1, true) &&
+                            !IsSquareAttacked(position, Constants.mask_C1, true) &&
+                            (my_pieces & clearsquares) == 0UL &&
+                            (enemy_pieces & clearsquares) == 0UL)
+                        {
+                            movesCount++;
+                        }
+                    }
+                }
+                else
+                {
+                    if ((position.flags & Constants.flag_castle_black_king) != 0UL)
+                    {
+                        // Short castle
+                        clearsquares = Constants.mask_F8 | Constants.mask_G8;
+                        if (position.b_king == Constants.mask_E8 &&
+                            (position.b_rook & Constants.mask_H8) != 0UL &&
+                            !IsSquareAttacked(position, Constants.mask_E8, false) &&
+                            !IsSquareAttacked(position, Constants.mask_F8, false) &&
+                            !IsSquareAttacked(position, Constants.mask_G8, false) &&
+                            (my_pieces & clearsquares) == 0UL &&
+                            (enemy_pieces & clearsquares) == 0UL)
+                        {
+                            movesCount++;
+                        }
+                    }
+
+                    if ((position.flags & Constants.flag_castle_black_queen) != 0UL)
+                    {
+                        // Long castle
+                        clearsquares = Constants.mask_D8 | Constants.mask_C8 | Constants.mask_B8;
+                        if (position.b_king == Constants.mask_E8 &&
+                            (position.b_rook & Constants.mask_A8) != 0UL &&
+                            !IsSquareAttacked(position, Constants.mask_E8, false) &&
+                            !IsSquareAttacked(position, Constants.mask_D8, false) &&
+                            !IsSquareAttacked(position, Constants.mask_C8, false) &&
+                            (my_pieces & clearsquares) == 0UL &&
+                            (enemy_pieces & clearsquares) == 0UL)
+                        {
+                            movesCount++;
+                        }
+                    }
+                }
+            }
+
+            // Loop through directions
+            for (int d = 0; d < 8; d++)
+            {
+                // Loop through movements withing this direction in order
+                for (int m = 0; m < 8; m++)
+                {
+                    destination = Constants.movements[square, pieceType, d, m];
+
+                    // End of move chain?
+                    if (destination == Constants.NULL)
+                    {
+                        break;
+                    }
+
+                    // Do we already have one of our own pieces on this square?
+                    if ((destination & my_pieces) != 0UL)
+                    {
+                        break;
+                    }
+
+                    moveflags = 0UL;
+                    capture = false;
+
+                    // Is this move a capture?
+                    if ((destination & enemy_pieces) != 0UL)
+                    {
+                        moveflags |= Constants.move_flag_is_capture;
+                        capture = true;
+                    }
+
+                    // Take care of all the joys of pawn calculation...
+                    if (pieceType == Constants.piece_P)
+                    {
+                        if (white_to_play)
+                        {
+                            // Make sure the pawns don't try to move backwards
+                            if (destination < square_mask)
+                            {
+                                break;
+                            }
+
+                            // En-passant - run BEFORE general capture checking since this won't normally be considered a capture (no piece on target square)
+                            if (destination == position.en_passent_square && position.en_passent_square != 0UL)
+                            {
+                                moveflags |= Constants.move_flag_is_en_passent;
+                                moveflags |= Constants.move_flag_is_capture;
+                            }
+                            else
+                            {
+                                // Make sure the pawns only move sideways if they are capturing
+                                if (destination == (square_mask << 9) && !capture)
+                                {
+                                    break;
+                                }
+                                if (destination == (square_mask << 7) && !capture)
+                                {
+                                    break;
+                                }
+                            }
+
+                            // Make sure pawns don't try to capture on an initial 2 square jump or general forward move
+                            if (destination == (square_mask << 16) && capture)
+                            {
+                                break;
+                            }
+                            if (destination == (square_mask << 8) && capture)
+                            {
+                                break;
+                            }
+
+                            // Deal with promotions
+                            if ((destination & 0xFF00000000000000UL) != 0UL)
+                            {
+                                promotion = true;
+                            }
+                        }
+                        else
+                        {
+                            // Make sure the pawns don't try to move backwards
+                            if (destination > square_mask)
+                            {
+                                break;
+                            }
+
+                            // En-passant - run BEFORE general capture checking since this won't normally be considered a capture (no piece on target square)
+                            if (destination == position.en_passent_square && position.en_passent_square != 0UL)
+                            {
+                                moveflags |= Constants.move_flag_is_en_passent;
+                                moveflags |= Constants.move_flag_is_capture;
+                            }
+                            else
+                            {
+                                // Make sure the pawns only move sideways if they are capturing
+                                if (destination == (square_mask >> 9) && !capture)
+                                {
+                                    break;
+                                }
+                                if (destination == (square_mask >> 7) && !capture)
+                                {
+                                    break;
+                                }
+                            }
+
+                            // Make sure pawns don't try to capture on an initial 2 square jump or general forward move
+                            if (destination == (square_mask >> 16) && capture)
+                            {
+                                break;
+                            }
+                            if (destination == (square_mask >> 8) && capture)
+                            {
+                                break;
+                            }
+
+                            // Deal with promotions
+                            if ((destination & 0x00000000000000FFUL) != 0UL)
+                            {
+                                promotion = true;
+                            }
+                        }
+                    }
+
+                    if (promotion)
+                    {
+                        // Enter all 4 possible promotion types
+                        movesCount += 4;
+                    }
+                    else
+                    {
+                        // Enter a regular move
+                        movesCount++;
+                    }
+
+                    // We found a capture searching down this direction, so stop looking further
+                    if (capture)
+                    {
+                        break;
+                    }
+                }
+            }
+
+            return movesCount;
         }
 
         private void GetMovesForPiece(ref List<Move> moves, ref Board position, int square, ulong square_mask, int pieceType, ulong my_pieces, ulong enemy_pieces, bool white_to_play, bool capturesOnly)
@@ -1297,7 +1660,7 @@ namespace Skotz_Chess_Engine
             // Loop through directions
             for (int d = 0; d < 8; d++)
             {
-                // Loop through movements withing this direction in order 
+                // Loop through movements withing this direction in order
                 for (int m = 0; m < 8; m++)
                 {
                     destination = Constants.movements[square, pieceType, d, m];
@@ -1453,7 +1816,7 @@ namespace Skotz_Chess_Engine
                     }
                     else
                     {
-                        // Enter a regular move 
+                        // Enter a regular move
                         moves.Add(new Move()
                         {
                             mask_from = square_mask,
@@ -1510,7 +1873,7 @@ namespace Skotz_Chess_Engine
             // Check for diagonal captures
             for (int d = 0; d < 4; d++)
             {
-                // Loop through movements within this direction in order 
+                // Loop through movements within this direction in order
                 for (int m = 0; m < 8; m++)
                 {
                     destination = Constants.movements[from_square, Constants.piece_B, d, m];
@@ -1544,7 +1907,7 @@ namespace Skotz_Chess_Engine
             // Check for horizontal and vertical captures
             for (int d = 0; d < 4; d++)
             {
-                // Loop through movements within this direction in order 
+                // Loop through movements within this direction in order
                 for (int m = 0; m < 8; m++)
                 {
                     destination = Constants.movements[from_square, Constants.piece_R, d, m];
@@ -1578,7 +1941,7 @@ namespace Skotz_Chess_Engine
             // Check for knight captures
             for (int d = 0; d < 8; d++)
             {
-                // Loop through movements within this direction in order 
+                // Loop through movements within this direction in order
                 for (int m = 0; m < 8; m++)
                 {
                     destination = Constants.movements[from_square, Constants.piece_N, d, m];
@@ -1606,7 +1969,7 @@ namespace Skotz_Chess_Engine
             // Check for pawn captures
             for (int d = 0; d < 8; d++)
             {
-                // Loop through movements within this direction in order 
+                // Loop through movements within this direction in order
                 for (int m = 0; m < 8; m++)
                 {
                     destination = Constants.movements[from_square, Constants.piece_P, d, m];
