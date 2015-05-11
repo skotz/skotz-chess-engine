@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Skotz_Chess_Engine
 {
@@ -319,48 +322,61 @@ namespace Skotz_Chess_Engine
         {
             int correct = 0;
             int wrong = 0;
+
+            int seconds = -1;
             int depth = 6;
+            
+            //for (int i = 0; i < positions.Count; i++)
+            Parallel.For(0, positions.Count, i =>
+            {
+                // Stopwatch watch = Stopwatch.StartNew();
+
+                try
+                {
+                    Game game = new Game();
+                    game.Silence();
+                    game.LoadBoard(positions[i].FEN);
+
+                    Move best = game.GetBestMove(seconds, depth);
+                    positions[i].GivenSolution = game.GetAlgebraicNotation(best).ToString();
+
+                    if (positions[i].CorrectSolution == positions[i].GivenSolution)
+                    {
+                        correct++;
+                    }
+                    else
+                    {
+                        wrong++;
+                    }
+
+                    positions[i].ResultString = "Test " + positions[i].ID + " [" + (positions[i].CorrectSolution == positions[i].GivenSolution ? "+" : "-") +
+                        "]: Best = " + positions[i].CorrectSolution + ", Given = " + positions[i].GivenSolution; // +" (" + watch.ElapsedMilliseconds + "ms)";
+
+                    Console.WriteLine(positions[i].ResultString);
+                }
+                catch (Exception ex)
+                {
+                    positions[i].ResultString = "Test " + positions[i].ID + " [F]: ERROR = " + ex.Message;
+                }
+
+                // positions[i].ElapsedTime = watch.ElapsedMilliseconds;
+            });
 
             using (StreamWriter results = new StreamWriter("wac-test-results.txt", false))
             {
                 results.WriteLine(DateTime.Now.ToShortDateString());
+                results.WriteLine("Time = " + seconds + " seconds");
                 results.WriteLine("Depth = " + depth);
-                Stopwatch watch = Stopwatch.StartNew();
 
                 for (int i = 0; i < positions.Count; i++)
                 {
-                    try
-                    {
-                        Game game = new Game();
-                        game.Silence();
-                        game.LoadBoard(positions[i].FEN);
-
-                        Move best = game.GetBestMove(-1, depth);
-                        positions[i].GivenSolution = game.GetAlgebraicNotation(best).ToString();
-
-                        if (positions[i].CorrectSolution == positions[i].GivenSolution)
-                        {
-                            correct++;
-                        }
-                        else
-                        {
-                            wrong++;
-                        }
-
-                        string message = "Test " + positions[i].ID + " [" + (positions[i].CorrectSolution == positions[i].GivenSolution ? "+" : "-") + "]: Best = " + positions[i].CorrectSolution + ", Given = " + positions[i].GivenSolution;
-                        Console.WriteLine(message);
-                        results.WriteLine(message);
-                    }
-                    catch (Exception ex)
-                    {
-                        string message = "Test " + positions[i].ID + " [F]: ERROR = " + ex.Message;
-                        Console.WriteLine(message);
-                        results.WriteLine(message);
-                    }
+                    results.WriteLine(positions[i].ResultString);
                 }
 
+                long totalTime = positions.Sum(x => x.ElapsedTime);
+
                 results.WriteLine("Got " + correct + " right and " + wrong + " wrong. " + correct + "/" + (correct + wrong) + " = " + ((correct * 100.0) / (correct + wrong)).ToString("0.00") + "%");
-                results.WriteLine("Completed in " + watch.ElapsedMilliseconds + " milliseconds");
+                results.WriteLine("Completed in " + totalTime + " milliseconds");
             }
         }
     }
@@ -374,6 +390,10 @@ namespace Skotz_Chess_Engine
         public string CorrectSolution { get; set; }
 
         public string GivenSolution { get; set; }
+
+        public string ResultString { get; set; }
+
+        public long ElapsedTime { get; set; }
 
         public Position(string epd)
         {

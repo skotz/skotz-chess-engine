@@ -3,8 +3,6 @@ This is my attempt to create a decently strong UCI chess engine in C# from scrat
 
 To play against this engine you will need a UCI compatible chess GUI. [Arena](http://www.playwitharena.com/) is free (and it's what I use).
 
-Here's a game that demonstrates the current strength of the program: [Skotz v0.2 vs Skotz v0.2 - 10 seconds per move - 7/13/13](http://skotz-chess-engine.googlecode.com/svn/trunk/Games%20Archive/Skotz%20v0.2/2013.07.13%20Skots%20v0.2%20%2810%20sec%29%20Self%20Play%20Checkmate.pgn)
+Here's a game that demonstrates the current strength of the program: [Skotz v0.2 vs Skotz v0.2 (10 sec/move, 7/13/13)](https://github.com/skotz/skotz-chess-engine/blob/master/Games%20Archive/Skotz%20v0.2/2013.07.13%20Skots%20v0.2%20(10%20sec)%20Self%20Play%20Checkmate.pgn)
 
 When reporting bugs, please attach the three *.out.txt files in the engine's directory. This will help me reproduce the error more easily.
-
-This project was exported from Google Code.
