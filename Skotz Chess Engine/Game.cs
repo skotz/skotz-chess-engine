@@ -925,25 +925,74 @@ namespace Skotz_Chess_Engine
             //}
 
             // Start with a random evaluation to mix it up ever so slightly when there's two equal moves
-            int eval = Utility.Rand.Next(3) - 1;
+            double eval = Utility.Rand.Next(3) - 1;
             evals++;
 
-            EvaluateMaterial(ref position, ref eval);
+            eval += EvaluateMaterial(position);
 
-            EvaluateDevelopment(ref position, ref eval);
+            eval += EvaluateDevelopment(position);
 
-            eval += EvaluatePiecePlacement(ref position);
+            eval += EvaluatePiecePlacement(position);
 
-            EvaluatePawnStructure(ref position, ref eval);
+            eval += EvaluatePawnStructure(position) / 2.0;
 
-            // eval += (int)(EvaluateMobility(ref position) * 0.5);
+            eval += EvaluateMobility(position) / 10.0;
 
             //evaluations.Add(hash, eval);
+
+            return (int)eval;
+        }
+
+        private int EvaluatePawnStructure(Board position)
+        {
+            int eval = 0;
+
+            // Doubled pawns
+            eval -= Utility.CountBits(position.w_pawn & Constants.file_a) > 1 ? 1 : 0;
+            eval -= Utility.CountBits(position.w_pawn & Constants.file_b) > 1 ? 1 : 0;
+            eval -= Utility.CountBits(position.w_pawn & Constants.file_c) > 1 ? 1 : 0;
+            eval -= Utility.CountBits(position.w_pawn & Constants.file_d) > 1 ? 1 : 0;
+            eval -= Utility.CountBits(position.w_pawn & Constants.file_e) > 1 ? 1 : 0;
+            eval -= Utility.CountBits(position.w_pawn & Constants.file_f) > 1 ? 1 : 0;
+            eval -= Utility.CountBits(position.w_pawn & Constants.file_g) > 1 ? 1 : 0;
+            eval -= Utility.CountBits(position.w_pawn & Constants.file_h) > 1 ? 1 : 0;
+
+            eval += Utility.CountBits(position.b_pawn & Constants.file_a) > 1 ? 1 : 0;
+            eval += Utility.CountBits(position.b_pawn & Constants.file_b) > 1 ? 1 : 0;
+            eval += Utility.CountBits(position.b_pawn & Constants.file_c) > 1 ? 1 : 0;
+            eval += Utility.CountBits(position.b_pawn & Constants.file_d) > 1 ? 1 : 0;
+            eval += Utility.CountBits(position.b_pawn & Constants.file_e) > 1 ? 1 : 0;
+            eval += Utility.CountBits(position.b_pawn & Constants.file_f) > 1 ? 1 : 0;
+            eval += Utility.CountBits(position.b_pawn & Constants.file_g) > 1 ? 1 : 0;
+            eval += Utility.CountBits(position.b_pawn & Constants.file_h) > 1 ? 1 : 0;
+
+            // Blocked pawns
+            eval -= Utility.CountBits((position.w_pawn << 8) & (position.b_king | position.b_queen | position.b_rook | position.b_bishop | position.b_knight | position.b_pawn));
+            eval += Utility.CountBits((position.b_pawn >> 8) & (position.w_king | position.w_queen | position.w_rook | position.w_bishop | position.w_knight | position.w_pawn));
+
+            // Isolated pawns
+            eval -= (position.w_pawn & Constants.file_b) == 0 && Utility.CountBits(position.w_pawn & Constants.file_a) > 1 ? 1 : 0;
+            eval -= (position.w_pawn & Constants.file_c) == 0 && (position.w_pawn & Constants.file_a) == 0 && Utility.CountBits(position.w_pawn & Constants.file_b) > 1 ? 1 : 0;
+            eval -= (position.w_pawn & Constants.file_d) == 0 && (position.w_pawn & Constants.file_b) == 0 && Utility.CountBits(position.w_pawn & Constants.file_c) > 1 ? 1 : 0;
+            eval -= (position.w_pawn & Constants.file_e) == 0 && (position.w_pawn & Constants.file_c) == 0 && Utility.CountBits(position.w_pawn & Constants.file_d) > 1 ? 1 : 0;
+            eval -= (position.w_pawn & Constants.file_f) == 0 && (position.w_pawn & Constants.file_d) == 0 && Utility.CountBits(position.w_pawn & Constants.file_e) > 1 ? 1 : 0;
+            eval -= (position.w_pawn & Constants.file_g) == 0 && (position.w_pawn & Constants.file_e) == 0 && Utility.CountBits(position.w_pawn & Constants.file_f) > 1 ? 1 : 0;
+            eval -= (position.w_pawn & Constants.file_h) == 0 && (position.w_pawn & Constants.file_f) == 0 && Utility.CountBits(position.w_pawn & Constants.file_g) > 1 ? 1 : 0;
+            eval -= (position.w_pawn & Constants.file_g) == 0 && Utility.CountBits(position.w_pawn & Constants.file_h) > 1 ? 1 : 0;
+
+            eval += (position.b_pawn & Constants.file_b) == 0 && Utility.CountBits(position.b_pawn & Constants.file_a) > 1 ? 1 : 0;
+            eval += (position.b_pawn & Constants.file_c) == 0 && (position.b_pawn & Constants.file_a) == 0 && Utility.CountBits(position.b_pawn & Constants.file_b) > 1 ? 1 : 0;
+            eval += (position.b_pawn & Constants.file_d) == 0 && (position.b_pawn & Constants.file_b) == 0 && Utility.CountBits(position.b_pawn & Constants.file_c) > 1 ? 1 : 0;
+            eval += (position.b_pawn & Constants.file_e) == 0 && (position.b_pawn & Constants.file_c) == 0 && Utility.CountBits(position.b_pawn & Constants.file_d) > 1 ? 1 : 0;
+            eval += (position.b_pawn & Constants.file_f) == 0 && (position.b_pawn & Constants.file_d) == 0 && Utility.CountBits(position.b_pawn & Constants.file_e) > 1 ? 1 : 0;
+            eval += (position.b_pawn & Constants.file_g) == 0 && (position.b_pawn & Constants.file_e) == 0 && Utility.CountBits(position.b_pawn & Constants.file_f) > 1 ? 1 : 0;
+            eval += (position.b_pawn & Constants.file_h) == 0 && (position.b_pawn & Constants.file_f) == 0 && Utility.CountBits(position.b_pawn & Constants.file_g) > 1 ? 1 : 0;
+            eval += (position.b_pawn & Constants.file_g) == 0 && Utility.CountBits(position.b_pawn & Constants.file_h) > 1 ? 1 : 0;
 
             return eval;
         }
 
-        private int EvaluateMobility(ref Board position)
+        private int EvaluateMobility(Board position)
         {
             int eval = 0;
 
@@ -953,7 +1002,7 @@ namespace Skotz_Chess_Engine
             return eval;
         }
 
-        private static int EvaluatePiecePlacement(ref Board position)
+        private static int EvaluatePiecePlacement(Board position)
         {
             ulong square_mask;
             int eval = 0;
@@ -1019,13 +1068,11 @@ namespace Skotz_Chess_Engine
 
             return eval;
         }
-
-        private static void EvaluatePawnStructure(ref Board position, ref int eval)
+        
+        private static int EvaluateDevelopment(Board position)
         {
-        }
+            int eval = 0;
 
-        private static void EvaluateDevelopment(ref Board position, ref int eval)
-        {
             eval -= (position.w_bishop & Constants.mask_F1) != 0UL ? Constants.eval_develop_piece : 0;
             eval -= (position.w_bishop & Constants.mask_C1) != 0UL ? Constants.eval_develop_piece : 0;
             eval -= (position.w_knight & Constants.mask_G1) != 0UL ? Constants.eval_develop_piece : 0;
@@ -1035,6 +1082,8 @@ namespace Skotz_Chess_Engine
             eval += (position.b_bishop & Constants.mask_C8) != 0UL ? Constants.eval_develop_piece : 0;
             eval += (position.b_knight & Constants.mask_G8) != 0UL ? Constants.eval_develop_piece : 0;
             eval += (position.b_knight & Constants.mask_B8) != 0UL ? Constants.eval_develop_piece : 0;
+
+            return eval;
         }
 
         //private static void EvaluateKingSafety(ref Board position, ref int eval)
@@ -1050,9 +1099,9 @@ namespace Skotz_Chess_Engine
         //    eval -= (position.b_king & Constants.king_safety_best_ranks) != 0UL ? Constants.king_safety_best_ranks_centipawns : 0;
         //}
 
-        private void EvaluateMaterial(ref Board position, ref int eval)
+        private int EvaluateMaterial(Board position)
         {
-            int diff = 0;
+            int eval = 0;
 
             //// See if we can look up a previous calculation first
             //ulong hash = GetPositionHash(ref position);
@@ -1065,26 +1114,27 @@ namespace Skotz_Chess_Engine
             //}
             //else
             //{
-            diff += Utility.CountBits(position.w_king) * Constants.eval_king;
-            diff += Utility.CountBits(position.w_queen) * Constants.eval_queen;
-            diff += Utility.CountBits(position.w_rook) * Constants.eval_rook;
-            diff += Utility.CountBits(position.w_bishop) * Constants.eval_bishop;
-            diff += Utility.CountBits(position.w_knight) * Constants.eval_knight;
-            diff += Utility.CountBits(position.w_pawn) * Constants.eval_pawn;
+            
+            eval += Utility.CountBits(position.w_king) * Constants.eval_king;
+            eval += Utility.CountBits(position.w_queen) * Constants.eval_queen;
+            eval += Utility.CountBits(position.w_rook) * Constants.eval_rook;
+            eval += Utility.CountBits(position.w_bishop) * Constants.eval_bishop;
+            eval += Utility.CountBits(position.w_knight) * Constants.eval_knight;
+            eval += Utility.CountBits(position.w_pawn) * Constants.eval_pawn;
 
-            diff -= Utility.CountBits(position.b_king) * Constants.eval_king;
-            diff -= Utility.CountBits(position.b_queen) * Constants.eval_queen;
-            diff -= Utility.CountBits(position.b_rook) * Constants.eval_rook;
-            diff -= Utility.CountBits(position.b_bishop) * Constants.eval_bishop;
-            diff -= Utility.CountBits(position.b_knight) * Constants.eval_knight;
-            diff -= Utility.CountBits(position.b_pawn) * Constants.eval_pawn;
+            eval -= Utility.CountBits(position.b_king) * Constants.eval_king;
+            eval -= Utility.CountBits(position.b_queen) * Constants.eval_queen;
+            eval -= Utility.CountBits(position.b_rook) * Constants.eval_rook;
+            eval -= Utility.CountBits(position.b_bishop) * Constants.eval_bishop;
+            eval -= Utility.CountBits(position.b_knight) * Constants.eval_knight;
+            eval -= Utility.CountBits(position.b_pawn) * Constants.eval_pawn;
 
             //    // Save the calculation
             //    material_eval[key] = diff;
             //    material_positions[key] = position;
             //}
 
-            eval += diff;
+            return eval;
         }
 
         public Move GetRandomMove()

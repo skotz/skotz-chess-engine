@@ -291,6 +291,21 @@ namespace Skotz_Chess_Engine
 
         #endregion
 
+        #region
+
+        // These are the bit masks for each file on the board.
+        
+        public const ulong file_a = mask_A1 | mask_A2 | mask_A3 | mask_A4 | mask_A5 | mask_A6 | mask_A7 | mask_A8;
+        public const ulong file_b = mask_B1 | mask_B2 | mask_B3 | mask_B4 | mask_B5 | mask_B6 | mask_B7 | mask_B8;
+        public const ulong file_c = mask_C1 | mask_C2 | mask_C3 | mask_C4 | mask_C5 | mask_C6 | mask_C7 | mask_C8;
+        public const ulong file_d = mask_D1 | mask_D2 | mask_D3 | mask_D4 | mask_D5 | mask_D6 | mask_D7 | mask_D8;
+        public const ulong file_e = mask_E1 | mask_E2 | mask_E3 | mask_E4 | mask_E5 | mask_E6 | mask_E7 | mask_E8;
+        public const ulong file_f = mask_F1 | mask_F2 | mask_F3 | mask_F4 | mask_F5 | mask_F6 | mask_F7 | mask_F8;
+        public const ulong file_g = mask_G1 | mask_G2 | mask_G3 | mask_G4 | mask_G5 | mask_G6 | mask_G7 | mask_G8;
+        public const ulong file_h = mask_H1 | mask_H2 | mask_H3 | mask_H4 | mask_H5 | mask_H6 | mask_H7 | mask_H8;
+
+        #endregion
+
         #region Bit Mask Squares
 
         // These are the bit masks for each square on the board.
