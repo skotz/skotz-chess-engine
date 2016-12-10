@@ -180,6 +180,14 @@ namespace Skotz_Chess_Engine
                                     move_time_seconds = int.Parse(cmd.Split(' ')[2]) / 1000;
                                     move_depth = 99;
                                 }
+                                if (cmd.Split(' ')[1] == "wtime")
+                                {
+                                    move_time_seconds = int.Parse(cmd.Split(' ')[2]) / 1000;
+                                    move_depth = 99;
+
+                                    // wtime is per game, not per move, but until that's implemented this'll have to do
+                                    move_time_seconds /= 50;
+                                }
                                 if (cmd.Split(' ')[1] == "depth")
                                 {
                                     move_time_seconds = 999999;

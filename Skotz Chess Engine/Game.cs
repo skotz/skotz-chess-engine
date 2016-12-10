@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -14,6 +15,7 @@ namespace Skotz_Chess_Engine
 
         private Stopwatch stopwatch;
         private int evals;
+        private int hashLookups;
         private bool cutoff;
 
         // TODO: this will not work when the engine is allowed to multi-thread since this assumes a singular user traversing through the tree
@@ -21,6 +23,8 @@ namespace Skotz_Chess_Engine
 
         // Transposition table
         private Move[] evaluations;
+
+        private Hashtable hashtable;
 
         private Board[] evaluations_positions;
         private const int evaluations_max = 256 * 256 * 8;
@@ -125,7 +129,7 @@ namespace Skotz_Chess_Engine
 
                 MakeMove(m);
 
-                ulong test = GetPositionHash(ref board);
+                //ulong test = GetPositionHash(ref board);
             }
             else
             {
@@ -156,67 +160,62 @@ namespace Skotz_Chess_Engine
             {
                 hash ^= Constants.zobrist_castle_white_queen;
             }
+            if ((position.flags & Constants.flag_white_to_move) == 0UL)
+            {
+                hash ^= Constants.zobrist_black_to_move;
+            }
 
             for (int square = 0; square < 64; square++)
             {
                 square_mask = Constants.bit_index_to_mask[square];
 
-                // Is it white to move?
-                if ((position.flags & Constants.flag_white_to_move) != 0UL)
+                if ((position.w_king & square_mask) != 0UL)
                 {
-                    if ((position.w_king & square_mask) != 0UL)
-                    {
-                        hash ^= Constants.zobrist_pieces[0, square];
-                    }
-                    else if ((position.w_queen & square_mask) != 0UL)
-                    {
-                        hash ^= Constants.zobrist_pieces[1, square];
-                    }
-                    else if ((position.w_rook & square_mask) != 0UL)
-                    {
-                        hash ^= Constants.zobrist_pieces[2, square];
-                    }
-                    else if ((position.w_bishop & square_mask) != 0UL)
-                    {
-                        hash ^= Constants.zobrist_pieces[3, square];
-                    }
-                    else if ((position.w_knight & square_mask) != 0UL)
-                    {
-                        hash ^= Constants.zobrist_pieces[4, square];
-                    }
-                    else if ((position.w_pawn & square_mask) != 0UL)
-                    {
-                        hash ^= Constants.zobrist_pieces[5, square];
-                    }
+                    hash ^= Constants.zobrist_pieces[0, square];
                 }
-                else // Black to move
+                else if ((position.w_queen & square_mask) != 0UL)
                 {
-                    hash ^= Constants.zobrist_black_to_move;
-
-                    if ((position.b_king & square_mask) != 0UL)
-                    {
-                        hash ^= Constants.zobrist_pieces[6, square];
-                    }
-                    else if ((position.b_queen & square_mask) != 0UL)
-                    {
-                        hash ^= Constants.zobrist_pieces[7, square];
-                    }
-                    else if ((position.b_rook & square_mask) != 0UL)
-                    {
-                        hash ^= Constants.zobrist_pieces[8, square];
-                    }
-                    else if ((position.b_bishop & square_mask) != 0UL)
-                    {
-                        hash ^= Constants.zobrist_pieces[9, square];
-                    }
-                    else if ((position.b_knight & square_mask) != 0UL)
-                    {
-                        hash ^= Constants.zobrist_pieces[10, square];
-                    }
-                    else if ((position.b_pawn & square_mask) != 0UL)
-                    {
-                        hash ^= Constants.zobrist_pieces[11, square];
-                    }
+                    hash ^= Constants.zobrist_pieces[1, square];
+                }
+                else if ((position.w_rook & square_mask) != 0UL)
+                {
+                    hash ^= Constants.zobrist_pieces[2, square];
+                }
+                else if ((position.w_bishop & square_mask) != 0UL)
+                {
+                    hash ^= Constants.zobrist_pieces[3, square];
+                }
+                else if ((position.w_knight & square_mask) != 0UL)
+                {
+                    hash ^= Constants.zobrist_pieces[4, square];
+                }
+                else if ((position.w_pawn & square_mask) != 0UL)
+                {
+                    hash ^= Constants.zobrist_pieces[5, square];
+                }
+                if ((position.b_king & square_mask) != 0UL)
+                {
+                    hash ^= Constants.zobrist_pieces[6, square];
+                }
+                else if ((position.b_queen & square_mask) != 0UL)
+                {
+                    hash ^= Constants.zobrist_pieces[7, square];
+                }
+                else if ((position.b_rook & square_mask) != 0UL)
+                {
+                    hash ^= Constants.zobrist_pieces[8, square];
+                }
+                else if ((position.b_bishop & square_mask) != 0UL)
+                {
+                    hash ^= Constants.zobrist_pieces[9, square];
+                }
+                else if ((position.b_knight & square_mask) != 0UL)
+                {
+                    hash ^= Constants.zobrist_pieces[10, square];
+                }
+                else if ((position.b_pawn & square_mask) != 0UL)
+                {
+                    hash ^= Constants.zobrist_pieces[11, square];
                 }
             }
 
@@ -643,6 +642,7 @@ namespace Skotz_Chess_Engine
         {
             stopwatch = Stopwatch.StartNew();
             evals = 0;
+            hashLookups = 0;
             cutoff = false;
 
             time_per_move = seconds == -1 ? 10 : seconds;
@@ -661,6 +661,9 @@ namespace Skotz_Chess_Engine
             // Iterative deepening
             for (int depth = 2; depth <= depth_per_move; depth += 2)
             {
+                // Don't use stored evaluations from a more shallow depth
+                hashtable = new Hashtable();
+
                 search = GetBestMove(ref board, depth, Int32.MinValue, Int32.MaxValue, depth /* TODO: Selective search */, all_moves, ref moves_count, true, true);
 
                 if (!cutoff)
@@ -683,6 +686,8 @@ namespace Skotz_Chess_Engine
                     all_moves[i] = moves[i];
                 }
             }
+
+            // Console.WriteLine("Evals: " + evals + " Lookups: " + hashLookups + " %: " + ((hashLookups * 100.0) / evals).ToString("0.00"));
 
             timer.Stop();
 
@@ -715,17 +720,13 @@ namespace Skotz_Chess_Engine
             int startevals = evals;
 
             // See if we can look up a previous calculation first
-            //ulong hash1 = GetPositionHash(ref position);
-            //ulong key1 = hash1 & evaluations_max_mask;
-            //Move m = evaluations[key1];
-            //if (m.depth >= depth && m.selective == (depth < 0))
-            //{
-            //    if (evaluations_positions[key1].Equals(position))
-            //    {
-            //        // evals += m.evals;
-            //        return m;
-            //    }
-            //}
+            ulong positionHash = GetPositionHash(ref position);
+            object storedMove = hashtable[positionHash];
+            if (storedMove != null)
+            {
+                hashLookups++;
+                return (Move)storedMove;
+            }
 
             // Reached max depth of search
             if (depth <= 0 && selective <= 0)
@@ -892,6 +893,19 @@ namespace Skotz_Chess_Engine
             //    bestmove.evals = evals - startevals;
             //    evaluations.Add(hash1, bestmove);
             //}
+
+            if (!hashtable.Contains(positionHash))
+            {
+                hashtable.Add(positionHash, bestmove);
+            }
+            else
+            {
+                Move existingMove = (Move)hashtable[positionHash];
+                if (bestmove.depth > existingMove.depth)
+                {
+                    hashtable[positionHash] = bestmove;
+                }
+            }
 
             // Save the evaluation
             bestmove.depth = depth;
