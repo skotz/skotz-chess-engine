@@ -37,7 +37,7 @@ namespace Skotz_Chess_Engine
             bool go = false;
             bool quit = false;
 
-            int move_time_seconds = 10;
+            double move_time_seconds = 10;
             int move_depth = 99;
 
             do
@@ -180,18 +180,31 @@ namespace Skotz_Chess_Engine
                                     move_time_seconds = int.Parse(cmd.Split(' ')[2]) / 1000;
                                     move_depth = 99;
                                 }
-                                if (cmd.Split(' ')[1] == "wtime")
-                                {
-                                    move_time_seconds = int.Parse(cmd.Split(' ')[2]) / 1000;
-                                    move_depth = 99;
-
-                                    // wtime is per game, not per move, but until that's implemented this'll have to do
-                                    move_time_seconds /= 50;
-                                }
                                 if (cmd.Split(' ')[1] == "depth")
                                 {
                                     move_time_seconds = 999999;
                                     move_depth = int.Parse(cmd.Split(' ')[2]);
+                                }
+                            }
+
+                            if (cmd.Split(' ').Length >= 5)
+                            {
+                                // wtime and btime represent the remaining time per game, not per move, but until that's implemented this'll have to do
+                                int remainingMoves = Math.Max(40 - game.MoveNumber, 10);
+
+                                if (cmd.Split(' ')[1] == "wtime" && player)
+                                {
+                                    double remainingTime = int.Parse(cmd.Split(' ')[2]) / 1000.0;
+                                    move_depth = 99;
+
+                                    move_time_seconds = remainingTime / remainingMoves;
+                                }
+                                if (cmd.Split(' ')[3] == "btime" && !player)
+                                {
+                                    double remainingTime = int.Parse(cmd.Split(' ')[4]) / 1000.0;
+                                    move_depth = 99;
+                                    
+                                    move_time_seconds = remainingTime / remainingMoves;
                                 }
                             }
 

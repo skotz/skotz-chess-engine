@@ -37,10 +37,12 @@ namespace Skotz_Chess_Engine
         private const int material_max = 256 * 256;
         private const ulong material_max_mask = material_max - 1;
 
-        private int time_per_move;
+        private double time_per_move;
         private int depth_per_move;
 
         private bool silent = false;
+
+        public int MoveNumber { get; private set; }
 
         public Game()
         {
@@ -327,18 +329,8 @@ namespace Skotz_Chess_Engine
             MakeMove(ref board, move);
         }
 
-        private void MakeMove(ref Board position, Move move)
+        private ulong MakeMove(ref Board position, Move move)
         {
-            ulong hash = GetPositionHash(ref position);
-            if (positions.ContainsKey(hash))
-            {
-                positions[hash]++;
-            }
-            else
-            {
-                positions.Add(hash, 1);
-            }
-
             // Is it white to move?
             if ((position.flags & Constants.flag_white_to_move) != 0UL)
             {
@@ -589,6 +581,20 @@ namespace Skotz_Chess_Engine
             {
                 position.half_move_number = 0;
             }
+
+            MoveNumber++;
+
+            ulong hash = GetPositionHash(ref position);
+            if (positions.ContainsKey(hash))
+            {
+                positions[hash]++;
+            }
+            else
+            {
+                positions.Add(hash, 1);
+            }
+
+            return hash;
         }
 
         public string GetAlgebraicNotation(Move move)
@@ -638,7 +644,7 @@ namespace Skotz_Chess_Engine
             return piece + capture + dest + check;
         }
 
-        public Move GetBestMove(int seconds = -1, int search_depth = -1)
+        public Move GetBestMove(double seconds = -1, int search_depth = -1)
         {
             stopwatch = Stopwatch.StartNew();
             evals = 0;
@@ -685,6 +691,8 @@ namespace Skotz_Chess_Engine
                 {
                     all_moves[i] = moves[i];
                 }
+
+                moves_count = moves.Count;
             }
 
             // Console.WriteLine("Evals: " + evals + " Lookups: " + hashLookups + " %: " + ((hashLookups * 100.0) / evals).ToString("0.00"));
@@ -719,14 +727,20 @@ namespace Skotz_Chess_Engine
 
             int startevals = evals;
 
-            // See if we can look up a previous calculation first
-            ulong positionHash = GetPositionHash(ref position);
-            object storedMove = hashtable[positionHash];
-            if (storedMove != null)
-            {
-                hashLookups++;
-                return (Move)storedMove;
-            }
+            //// See if we can look up a previous calculation first
+            //ulong positionHash = GetPositionHash(ref position);
+            //object storedMove = hashtable[positionHash];
+            //if (storedMove != null)
+            //{
+            //    Move hashMove = (Move)storedMove;
+
+            //    // We want to store the smallest depth since we're decrementing the depth as we recursively search deeper
+            //    if (hashMove.depth <= depth)
+            //    {
+            //        hashLookups++;
+            //        return hashMove;
+            //    }
+            //}
 
             // Reached max depth of search
             if (depth <= 0 && selective <= 0)
@@ -752,7 +766,7 @@ namespace Skotz_Chess_Engine
             }
             Move bestmove = new Move();
             bestmove.evaluation = white_to_play ? int.MinValue : int.MaxValue;
-            Move testmove;
+            Move testmove = new Move();
             Board temp;
             bool set = false;
             ulong hash;
@@ -771,23 +785,14 @@ namespace Skotz_Chess_Engine
                 temp = position;
 
                 // Make the suggested move
-                MakeMove(ref temp, moves[move_num]);
-
-                // Detect 3 fold repetition
-                hash = GetPositionHash(ref position);
-
-                // TODO: This won't work for multi-threaded tree searches...
-                if (positions[hash] >= 3)
-                {
-                    // It's a dead draw
-                    testmove.evaluation = 0;
-                }
-
+                hash = MakeMove(ref temp, moves[move_num]);
+                
                 // Is the move valid?
                 if (white_to_play)
                 {
                     if (IsSquareAttacked(temp, temp.w_king, true))
                     {
+                        RemoveEvaluatedMove(hash);
                         continue;
                     }
                 }
@@ -795,20 +800,26 @@ namespace Skotz_Chess_Engine
                 {
                     if (IsSquareAttacked(temp, temp.b_king, false))
                     {
+                        RemoveEvaluatedMove(hash);
                         continue;
                     }
                 }
 
-                // Evaluate the counter moves
-                testmove = GetBestMove(ref temp, depth - 1, alpha, beta, selective - 1, null, ref zero, false);
+                // Detect 3 fold repetition (TODO: This won't work for multi-threaded tree searches...)
+                if (positions[hash] >= 2)
+                {
+                    // Contempt value to prefer not drawing up to the cost of a pawn
+                    testmove.evaluation = white_to_play ? -Constants.eval_draw_contempt : Constants.eval_draw_contempt;
+                    testmove.primary_variation = "DRAW";
+                }
+                else
+                {
+                    // Evaluate the counter moves
+                    testmove = GetBestMove(ref temp, depth - 1, alpha, beta, selective - 1, null, ref zero, false);
+                }
 
                 // Remove the evaluated move from the hash table
-                positions[hash]--;
-                if (positions[hash] <= 0)
-                {
-                    // Clean up some of the millions of empty records...
-                    positions.Remove(hash);
-                }
+                RemoveEvaluatedMove(hash);
 
                 // Save the evaluation for move ordering
                 if (all_moves_update)
@@ -876,7 +887,7 @@ namespace Skotz_Chess_Engine
                 {
                     if (improved && !silent)
                     {
-                        Console.WriteLine("info score cp " + bestmove.evaluation +
+                        Console.WriteLine("info score cp " +  (white_to_play ? bestmove.evaluation : -bestmove.evaluation) +
                             " depth " + (depth / 2) +
                             " nodes " + evals +
                             " time " + stopwatch.ElapsedMilliseconds +
@@ -893,19 +904,6 @@ namespace Skotz_Chess_Engine
             //    bestmove.evals = evals - startevals;
             //    evaluations.Add(hash1, bestmove);
             //}
-
-            if (!hashtable.Contains(positionHash))
-            {
-                hashtable.Add(positionHash, bestmove);
-            }
-            else
-            {
-                Move existingMove = (Move)hashtable[positionHash];
-                if (bestmove.depth > existingMove.depth)
-                {
-                    hashtable[positionHash] = bestmove;
-                }
-            }
 
             // Save the evaluation
             bestmove.depth = depth;
@@ -926,7 +924,69 @@ namespace Skotz_Chess_Engine
                 }
             }
 
+            // There were no moves to evaluate, so assume it's a stalemate or mate
+            if (!set)
+            {
+                if (white_to_play)
+                {
+                    // White is checkmated
+                    if (IsSquareAttacked(position, position.w_king, true))
+                    {
+                        return new Move()
+                        {
+                            evaluation = -Constants.eval_king,
+                            depth = 0,
+                            primary_variation = "MATE"
+                        };
+                    }
+                }
+                else
+                {
+                    // Black is checkmated
+                    if (IsSquareAttacked(position, position.b_king, false))
+                    {
+                        return new Move()
+                        {
+                            evaluation = Constants.eval_king,
+                            depth = 0,
+                            primary_variation = "MATE"
+                        };
+                    }
+                }
+
+                // Stalemate
+                return new Move()
+                {
+                    evaluation = 0,
+                    depth = 0,
+                    primary_variation = "STALE"
+                };
+            }
+
+            //if (!hashtable.Contains(positionHash))
+            //{
+            //    hashtable.Add(positionHash, bestmove);
+            //}
+            //else
+            //{
+            //    Move savedmove = (Move)hashtable[positionHash];
+            //    if (bestmove.depth < savedmove.depth)
+            //    {
+            //        hashtable[positionHash] = bestmove;
+            //    }
+            //}
+
             return bestmove;
+        }
+
+        private void RemoveEvaluatedMove(ulong hash)
+        {
+            positions[hash]--;
+            if (positions[hash] <= 0)
+            {
+                // Clean up some of the millions of empty records...
+                positions.Remove(hash);
+            }
         }
 
         private int EvaluateBoard(ref Board position)
@@ -1912,13 +1972,13 @@ namespace Skotz_Chess_Engine
                 // End of move chain?
                 if (destination == Constants.NULL)
                 {
-                    break;
+                    continue;
                 }
 
                 // Do we already have one of our own pieces on this square?
                 if ((destination & my_pieces) != 0UL)
                 {
-                    break;
+                    continue;
                 }
 
                 // Is this move a capture?
@@ -1930,7 +1990,7 @@ namespace Skotz_Chess_Engine
                 // Is this hitting any other random enemy piece that can't attack us?
                 if ((destination & enemy_all) != 0UL)
                 {
-                    break;
+                    continue;
                 }
             }
 

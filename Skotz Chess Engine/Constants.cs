@@ -22,6 +22,7 @@ namespace Skotz_Chess_Engine
 
         public const int eval_king_loss_threshold = eval_king / 2;
         public const int eval_adjust_king_loss = 1000;
+        public const int eval_draw_contempt = 100;
 
         #endregion
 
