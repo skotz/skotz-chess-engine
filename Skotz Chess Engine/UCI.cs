@@ -13,7 +13,7 @@ namespace Skotz_Chess_Engine
         Game game;
 
         string engine = "Skotz";
-        string version = "v0.2.2";
+        string version = "v0.2.3";
 
         bool debugFileCleared = false;
         Queue<string> testInput = new Queue<string>();
@@ -190,7 +190,7 @@ namespace Skotz_Chess_Engine
                             if (cmd.Split(' ').Length >= 5)
                             {
                                 // wtime and btime represent the remaining time per game, not per move, but until that's implemented this'll have to do
-                                int remainingMoves = Math.Max(40 - game.MoveNumber, 10);
+                                int remainingMoves = Math.Max(60 - game.MoveNumber, 10);
 
                                 if (cmd.Split(' ')[1] == "wtime" && player)
                                 {

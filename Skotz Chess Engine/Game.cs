@@ -858,11 +858,22 @@ namespace Skotz_Chess_Engine
                         improved = true;
                     }
 
-                    alpha = Math.Max(alpha, testmove.evaluation);
-                    if (beta <= alpha)
+                    if (testmove.evaluation >= beta)
                     {
+                        bestmove.evaluation = beta;
                         break;
                     }
+
+                    if (testmove.evaluation > alpha)
+                    {
+                        alpha = testmove.evaluation;
+                    }
+
+                    //alpha = Math.Max(alpha, testmove.evaluation);
+                    //if (beta <= alpha)
+                    //{
+                    //    break;
+                    //}
                 }
                 else
                 {
@@ -875,11 +886,22 @@ namespace Skotz_Chess_Engine
                         improved = true;
                     }
 
-                    beta = Math.Min(beta, testmove.evaluation);
-                    if (beta <= alpha)
+                    if (testmove.evaluation <= alpha)
                     {
+                        bestmove.evaluation = alpha;
                         break;
                     }
+
+                    if (testmove.evaluation < beta)
+                    {
+                        beta = testmove.evaluation;
+                    }
+
+                    //beta = Math.Min(beta, testmove.evaluation);
+                    //if (beta <= alpha)
+                    //{
+                    //    break;
+                    //}
                 }
 
                 // Display some stats if we are at the base level of recursion
