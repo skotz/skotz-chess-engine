@@ -24,6 +24,10 @@ namespace Skotz_Chess_Engine
         public const int eval_adjust_king_loss = 1000;
         public const int eval_draw_contempt = 100;
 
+        public const int eval_doubled_pawn_penalty = 2;
+        public const int eval_blocked_pawn_penalty = 1;
+        public const int eval_isolated_pawn_penalty = 5;
+
         #endregion
 
         #region Board Flag Masks
@@ -292,7 +296,7 @@ namespace Skotz_Chess_Engine
 
         #endregion
 
-        #region
+        #region Bit Masks for Files
 
         // These are the bit masks for each file on the board.
         

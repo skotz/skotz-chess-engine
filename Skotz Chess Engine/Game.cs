@@ -1038,7 +1038,7 @@ namespace Skotz_Chess_Engine
 
             eval += EvaluatePiecePlacement(position);
 
-            eval += EvaluatePawnStructure(position) / 2.0;
+            eval += EvaluatePawnStructure(position);
 
             eval += EvaluateMobility(position) / 10.0;
 
@@ -1052,46 +1052,46 @@ namespace Skotz_Chess_Engine
             int eval = 0;
 
             // Doubled pawns
-            eval -= Utility.CountBits(position.w_pawn & Constants.file_a) > 1 ? 1 : 0;
-            eval -= Utility.CountBits(position.w_pawn & Constants.file_b) > 1 ? 1 : 0;
-            eval -= Utility.CountBits(position.w_pawn & Constants.file_c) > 1 ? 1 : 0;
-            eval -= Utility.CountBits(position.w_pawn & Constants.file_d) > 1 ? 1 : 0;
-            eval -= Utility.CountBits(position.w_pawn & Constants.file_e) > 1 ? 1 : 0;
-            eval -= Utility.CountBits(position.w_pawn & Constants.file_f) > 1 ? 1 : 0;
-            eval -= Utility.CountBits(position.w_pawn & Constants.file_g) > 1 ? 1 : 0;
-            eval -= Utility.CountBits(position.w_pawn & Constants.file_h) > 1 ? 1 : 0;
+            eval -= Utility.CountBits(position.w_pawn & Constants.file_a) > 1 ? Constants.eval_doubled_pawn_penalty : 0;
+            eval -= Utility.CountBits(position.w_pawn & Constants.file_b) > 1 ? Constants.eval_doubled_pawn_penalty : 0;
+            eval -= Utility.CountBits(position.w_pawn & Constants.file_c) > 1 ? Constants.eval_doubled_pawn_penalty : 0;
+            eval -= Utility.CountBits(position.w_pawn & Constants.file_d) > 1 ? Constants.eval_doubled_pawn_penalty : 0;
+            eval -= Utility.CountBits(position.w_pawn & Constants.file_e) > 1 ? Constants.eval_doubled_pawn_penalty : 0;
+            eval -= Utility.CountBits(position.w_pawn & Constants.file_f) > 1 ? Constants.eval_doubled_pawn_penalty : 0;
+            eval -= Utility.CountBits(position.w_pawn & Constants.file_g) > 1 ? Constants.eval_doubled_pawn_penalty : 0;
+            eval -= Utility.CountBits(position.w_pawn & Constants.file_h) > 1 ? Constants.eval_doubled_pawn_penalty : 0;
 
-            eval += Utility.CountBits(position.b_pawn & Constants.file_a) > 1 ? 1 : 0;
-            eval += Utility.CountBits(position.b_pawn & Constants.file_b) > 1 ? 1 : 0;
-            eval += Utility.CountBits(position.b_pawn & Constants.file_c) > 1 ? 1 : 0;
-            eval += Utility.CountBits(position.b_pawn & Constants.file_d) > 1 ? 1 : 0;
-            eval += Utility.CountBits(position.b_pawn & Constants.file_e) > 1 ? 1 : 0;
-            eval += Utility.CountBits(position.b_pawn & Constants.file_f) > 1 ? 1 : 0;
-            eval += Utility.CountBits(position.b_pawn & Constants.file_g) > 1 ? 1 : 0;
-            eval += Utility.CountBits(position.b_pawn & Constants.file_h) > 1 ? 1 : 0;
+            eval += Utility.CountBits(position.b_pawn & Constants.file_a) > 1 ? Constants.eval_doubled_pawn_penalty : 0;
+            eval += Utility.CountBits(position.b_pawn & Constants.file_b) > 1 ? Constants.eval_doubled_pawn_penalty : 0;
+            eval += Utility.CountBits(position.b_pawn & Constants.file_c) > 1 ? Constants.eval_doubled_pawn_penalty : 0;
+            eval += Utility.CountBits(position.b_pawn & Constants.file_d) > 1 ? Constants.eval_doubled_pawn_penalty : 0;
+            eval += Utility.CountBits(position.b_pawn & Constants.file_e) > 1 ? Constants.eval_doubled_pawn_penalty : 0;
+            eval += Utility.CountBits(position.b_pawn & Constants.file_f) > 1 ? Constants.eval_doubled_pawn_penalty : 0;
+            eval += Utility.CountBits(position.b_pawn & Constants.file_g) > 1 ? Constants.eval_doubled_pawn_penalty : 0;
+            eval += Utility.CountBits(position.b_pawn & Constants.file_h) > 1 ? Constants.eval_doubled_pawn_penalty : 0;
 
             // Blocked pawns
-            eval -= Utility.CountBits((position.w_pawn << 8) & (position.b_king | position.b_queen | position.b_rook | position.b_bishop | position.b_knight | position.b_pawn));
-            eval += Utility.CountBits((position.b_pawn >> 8) & (position.w_king | position.w_queen | position.w_rook | position.w_bishop | position.w_knight | position.w_pawn));
+            eval -= Utility.CountBits((position.w_pawn << 8) & (position.b_king | position.b_queen | position.b_rook | position.b_bishop | position.b_knight | position.b_pawn)) * Constants.eval_blocked_pawn_penalty;
+            eval += Utility.CountBits((position.b_pawn >> 8) & (position.w_king | position.w_queen | position.w_rook | position.w_bishop | position.w_knight | position.w_pawn)) * Constants.eval_blocked_pawn_penalty;
 
             // Isolated pawns
-            eval -= (position.w_pawn & Constants.file_b) == 0 && Utility.CountBits(position.w_pawn & Constants.file_a) > 1 ? 1 : 0;
-            eval -= (position.w_pawn & Constants.file_c) == 0 && (position.w_pawn & Constants.file_a) == 0 && Utility.CountBits(position.w_pawn & Constants.file_b) > 1 ? 1 : 0;
-            eval -= (position.w_pawn & Constants.file_d) == 0 && (position.w_pawn & Constants.file_b) == 0 && Utility.CountBits(position.w_pawn & Constants.file_c) > 1 ? 1 : 0;
-            eval -= (position.w_pawn & Constants.file_e) == 0 && (position.w_pawn & Constants.file_c) == 0 && Utility.CountBits(position.w_pawn & Constants.file_d) > 1 ? 1 : 0;
-            eval -= (position.w_pawn & Constants.file_f) == 0 && (position.w_pawn & Constants.file_d) == 0 && Utility.CountBits(position.w_pawn & Constants.file_e) > 1 ? 1 : 0;
-            eval -= (position.w_pawn & Constants.file_g) == 0 && (position.w_pawn & Constants.file_e) == 0 && Utility.CountBits(position.w_pawn & Constants.file_f) > 1 ? 1 : 0;
-            eval -= (position.w_pawn & Constants.file_h) == 0 && (position.w_pawn & Constants.file_f) == 0 && Utility.CountBits(position.w_pawn & Constants.file_g) > 1 ? 1 : 0;
-            eval -= (position.w_pawn & Constants.file_g) == 0 && Utility.CountBits(position.w_pawn & Constants.file_h) > 1 ? 1 : 0;
+            eval -= (position.w_pawn & Constants.file_b) == 0 && Utility.CountBits(position.w_pawn & Constants.file_a) > 1 ? Constants.eval_isolated_pawn_penalty : 0;
+            eval -= (position.w_pawn & Constants.file_c) == 0 && (position.w_pawn & Constants.file_a) == 0 && Utility.CountBits(position.w_pawn & Constants.file_b) > 1 ? Constants.eval_isolated_pawn_penalty : 0;
+            eval -= (position.w_pawn & Constants.file_d) == 0 && (position.w_pawn & Constants.file_b) == 0 && Utility.CountBits(position.w_pawn & Constants.file_c) > 1 ? Constants.eval_isolated_pawn_penalty : 0;
+            eval -= (position.w_pawn & Constants.file_e) == 0 && (position.w_pawn & Constants.file_c) == 0 && Utility.CountBits(position.w_pawn & Constants.file_d) > 1 ? Constants.eval_isolated_pawn_penalty : 0;
+            eval -= (position.w_pawn & Constants.file_f) == 0 && (position.w_pawn & Constants.file_d) == 0 && Utility.CountBits(position.w_pawn & Constants.file_e) > 1 ? Constants.eval_isolated_pawn_penalty : 0;
+            eval -= (position.w_pawn & Constants.file_g) == 0 && (position.w_pawn & Constants.file_e) == 0 && Utility.CountBits(position.w_pawn & Constants.file_f) > 1 ? Constants.eval_isolated_pawn_penalty : 0;
+            eval -= (position.w_pawn & Constants.file_h) == 0 && (position.w_pawn & Constants.file_f) == 0 && Utility.CountBits(position.w_pawn & Constants.file_g) > 1 ? Constants.eval_isolated_pawn_penalty : 0;
+            eval -= (position.w_pawn & Constants.file_g) == 0 && Utility.CountBits(position.w_pawn & Constants.file_h) > 1 ? Constants.eval_isolated_pawn_penalty : 0;
 
-            eval += (position.b_pawn & Constants.file_b) == 0 && Utility.CountBits(position.b_pawn & Constants.file_a) > 1 ? 1 : 0;
-            eval += (position.b_pawn & Constants.file_c) == 0 && (position.b_pawn & Constants.file_a) == 0 && Utility.CountBits(position.b_pawn & Constants.file_b) > 1 ? 1 : 0;
-            eval += (position.b_pawn & Constants.file_d) == 0 && (position.b_pawn & Constants.file_b) == 0 && Utility.CountBits(position.b_pawn & Constants.file_c) > 1 ? 1 : 0;
-            eval += (position.b_pawn & Constants.file_e) == 0 && (position.b_pawn & Constants.file_c) == 0 && Utility.CountBits(position.b_pawn & Constants.file_d) > 1 ? 1 : 0;
-            eval += (position.b_pawn & Constants.file_f) == 0 && (position.b_pawn & Constants.file_d) == 0 && Utility.CountBits(position.b_pawn & Constants.file_e) > 1 ? 1 : 0;
-            eval += (position.b_pawn & Constants.file_g) == 0 && (position.b_pawn & Constants.file_e) == 0 && Utility.CountBits(position.b_pawn & Constants.file_f) > 1 ? 1 : 0;
-            eval += (position.b_pawn & Constants.file_h) == 0 && (position.b_pawn & Constants.file_f) == 0 && Utility.CountBits(position.b_pawn & Constants.file_g) > 1 ? 1 : 0;
-            eval += (position.b_pawn & Constants.file_g) == 0 && Utility.CountBits(position.b_pawn & Constants.file_h) > 1 ? 1 : 0;
+            eval += (position.b_pawn & Constants.file_b) == 0 && Utility.CountBits(position.b_pawn & Constants.file_a) > 1 ? Constants.eval_isolated_pawn_penalty : 0;
+            eval += (position.b_pawn & Constants.file_c) == 0 && (position.b_pawn & Constants.file_a) == 0 && Utility.CountBits(position.b_pawn & Constants.file_b) > 1 ? Constants.eval_isolated_pawn_penalty : 0;
+            eval += (position.b_pawn & Constants.file_d) == 0 && (position.b_pawn & Constants.file_b) == 0 && Utility.CountBits(position.b_pawn & Constants.file_c) > 1 ? Constants.eval_isolated_pawn_penalty : 0;
+            eval += (position.b_pawn & Constants.file_e) == 0 && (position.b_pawn & Constants.file_c) == 0 && Utility.CountBits(position.b_pawn & Constants.file_d) > 1 ? Constants.eval_isolated_pawn_penalty : 0;
+            eval += (position.b_pawn & Constants.file_f) == 0 && (position.b_pawn & Constants.file_d) == 0 && Utility.CountBits(position.b_pawn & Constants.file_e) > 1 ? Constants.eval_isolated_pawn_penalty : 0;
+            eval += (position.b_pawn & Constants.file_g) == 0 && (position.b_pawn & Constants.file_e) == 0 && Utility.CountBits(position.b_pawn & Constants.file_f) > 1 ? Constants.eval_isolated_pawn_penalty : 0;
+            eval += (position.b_pawn & Constants.file_h) == 0 && (position.b_pawn & Constants.file_f) == 0 && Utility.CountBits(position.b_pawn & Constants.file_g) > 1 ? Constants.eval_isolated_pawn_penalty : 0;
+            eval += (position.b_pawn & Constants.file_g) == 0 && Utility.CountBits(position.b_pawn & Constants.file_h) > 1 ? Constants.eval_isolated_pawn_penalty : 0;
 
             return eval;
         }
