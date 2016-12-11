@@ -24,6 +24,8 @@ namespace Skotz_Chess_Engine
         public const int eval_adjust_king_loss = 1000;
         public const int eval_draw_contempt = 100;
 
+        public const int history_size = 64;
+
         #endregion
 
         #region Board Flag Masks

@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Timers;
 
 // Scott Clayton 2013
@@ -15,20 +16,20 @@ namespace Skotz_Chess_Engine
 
         private Stopwatch stopwatch;
         private int evals;
-        private int hashLookups;
+        //private int hashLookups;
         private bool cutoff;
 
         // TODO: this will not work when the engine is allowed to multi-thread since this assumes a singular user traversing through the tree
-        private Dictionary<ulong, int> positions;
+        //private Dictionary<ulong, int> positions;
 
         // Transposition table
-        private Move[] evaluations;
+        //private Move[] evaluations;
 
         private Hashtable hashtable;
 
-        private Board[] evaluations_positions;
-        private const int evaluations_max = 256 * 256 * 8;
-        private const ulong evaluations_max_mask = evaluations_max - 1;
+        //private Board[] evaluations_positions;
+        //private const int evaluations_max = 256 * 256 * 8;
+        //private const ulong evaluations_max_mask = evaluations_max - 1;
 
         // Material hash table
         private int[] material_eval;
@@ -47,10 +48,10 @@ namespace Skotz_Chess_Engine
         public Game()
         {
             board = new Board();
-            positions = new Dictionary<ulong, int>();
+            //positions = new Dictionary<ulong, int>();
 
-            evaluations = new Move[evaluations_max];
-            evaluations_positions = new Board[evaluations_max];
+            //evaluations = new Move[evaluations_max];
+            //evaluations_positions = new Board[evaluations_max];
 
             material_eval = new int[material_max];
             material_positions = new Board[material_max];
@@ -59,7 +60,7 @@ namespace Skotz_Chess_Engine
         public void ResetBoard()
         {
             board = BoardGenerator.NewStandardSetup();
-            positions = new Dictionary<ulong, int>();
+            //positions = new Dictionary<ulong, int>();
         }
 
         public bool LoadBoard(string fen)
@@ -329,8 +330,14 @@ namespace Skotz_Chess_Engine
             MakeMove(ref board, move);
         }
 
-        private ulong MakeMove(ref Board position, Move move)
+        private void MakeMove(ref Board position, Move move)
         {
+            if (position.history == null)
+            {
+                position.history = new ulong[Constants.history_size];
+                position.history_next = 0;
+            }
+
             // Is it white to move?
             if ((position.flags & Constants.flag_white_to_move) != 0UL)
             {
@@ -585,16 +592,21 @@ namespace Skotz_Chess_Engine
             MoveNumber++;
 
             ulong hash = GetPositionHash(ref position);
-            if (positions.ContainsKey(hash))
-            {
-                positions[hash]++;
-            }
-            else
-            {
-                positions.Add(hash, 1);
-            }
+            
+            //if (positions.ContainsKey(hash))
+            //{
+            //    positions[hash]++;
+            //}
+            //else
+            //{
+            //    positions.Add(hash, 1);
+            //}
 
-            return hash;
+            position.history[position.history_next++] = hash;
+            if (position.history_next >= Constants.history_size)
+            {
+                position.history_next = 0;
+            }
         }
 
         public string GetAlgebraicNotation(Move move)
@@ -648,7 +660,7 @@ namespace Skotz_Chess_Engine
         {
             stopwatch = Stopwatch.StartNew();
             evals = 0;
-            hashLookups = 0;
+            //hashLookups = 0;
             cutoff = false;
 
             time_per_move = seconds == -1 ? 10 : seconds;
@@ -670,7 +682,7 @@ namespace Skotz_Chess_Engine
                 // Don't use stored evaluations from a more shallow depth
                 hashtable = new Hashtable();
 
-                search = GetBestMove(ref board, depth, Int32.MinValue, Int32.MaxValue, depth /* TODO: Selective search */, all_moves, ref moves_count, true, true);
+                search = GetBestMove(board, depth, Int32.MinValue, Int32.MaxValue, depth /* TODO: Selective search */, all_moves, true, true);
 
                 if (!cutoff)
                 {
@@ -717,7 +729,7 @@ namespace Skotz_Chess_Engine
             }
         }
 
-        private Move GetBestMove(ref Board position, int depth, int alpha, int beta, int selective, List<Move> all_moves, ref int all_moves_count, bool all_moves_update, bool firstlevel = false)
+        private Move GetBestMove(Board position, int depth, int alpha, int beta, int selective, List<Move> all_moves, bool all_moves_update, bool firstlevel = false)
         {
             // Stop calculating and toss any results
             if (cutoff)
@@ -726,6 +738,7 @@ namespace Skotz_Chess_Engine
             }
 
             int startevals = evals;
+            int all_moves_count = all_moves != null ? all_moves.Count : 0;
 
             //// See if we can look up a previous calculation first
             //ulong positionHash = GetPositionHash(ref position);
@@ -769,44 +782,44 @@ namespace Skotz_Chess_Engine
             Move testmove = new Move();
             Board temp;
             bool set = false;
-            ulong hash;
             bool improved = false;
-            int zero = 0;
+            bool breakout = false;
 
-            for (int move_num = 0; move_num < moves.Count; move_num++)
+            Action<int, ParallelLoopState> loop = (move_num, state) =>
             {
                 // Limit to captures for selective searches
                 if ((moves[move_num].flags & Constants.move_flag_is_capture) == 0UL && depth <= 0)
                 {
-                    continue;
+                    //continue;
+                    return;
                 }
 
                 // Copy game state
                 temp = position;
 
                 // Make the suggested move
-                hash = MakeMove(ref temp, moves[move_num]);
-                
+                MakeMove(ref temp, moves[move_num]);
+
                 // Is the move valid?
                 if (white_to_play)
                 {
                     if (IsSquareAttacked(temp, temp.w_king, true))
                     {
-                        RemoveEvaluatedMove(hash);
-                        continue;
+                        //continue;
+                        return;
                     }
                 }
                 else
                 {
                     if (IsSquareAttacked(temp, temp.b_king, false))
                     {
-                        RemoveEvaluatedMove(hash);
-                        continue;
+                        //continue;
+                        return;
                     }
                 }
 
-                // Detect 3 fold repetition (TODO: This won't work for multi-threaded tree searches...)
-                if (positions[hash] >= 2)
+                // Detect 3 fold repetition (actually 2 fold)
+                if (DetectRepetition(temp))
                 {
                     // Contempt value to prefer not drawing up to the cost of a pawn
                     testmove.evaluation = white_to_play ? -Constants.eval_draw_contempt : Constants.eval_draw_contempt;
@@ -815,25 +828,28 @@ namespace Skotz_Chess_Engine
                 else
                 {
                     // Evaluate the counter moves
-                    testmove = GetBestMove(ref temp, depth - 1, alpha, beta, selective - 1, null, ref zero, false);
+                    testmove = GetBestMove(temp, depth - 1, alpha, beta, selective - 1, null, false);
                 }
 
                 // Remove the evaluated move from the hash table
-                RemoveEvaluatedMove(hash);
+                //RemoveEvaluatedMove(hash);
 
                 // Save the evaluation for move ordering
                 if (all_moves_update)
                 {
-                    all_moves_count = count;
-                    Move m2 = moves[move_num];
-                    m2.evaluation = testmove.evaluation;
-                    if (all_moves.Count <= move_num)
+                    lock (all_moves)
                     {
-                        all_moves.Add(m2);
-                    }
-                    else
-                    {
-                        all_moves[move_num] = m2;
+                        all_moves_count = count;
+                        Move m2 = moves[move_num];
+                        m2.evaluation = testmove.evaluation;
+                        if (all_moves.Count <= move_num)
+                        {
+                            all_moves.Add(m2);
+                        }
+                        else
+                        {
+                            all_moves[move_num] = m2;
+                        }
                     }
                 }
 
@@ -861,7 +877,16 @@ namespace Skotz_Chess_Engine
                     if (testmove.evaluation >= beta)
                     {
                         bestmove.evaluation = beta;
-                        break;
+                        
+                        if (state != null)
+                        {
+                            state.Stop();
+                        }
+                        else
+                        {
+                            breakout = true;
+                            return;
+                        }
                     }
 
                     if (testmove.evaluation > alpha)
@@ -889,7 +914,16 @@ namespace Skotz_Chess_Engine
                     if (testmove.evaluation <= alpha)
                     {
                         bestmove.evaluation = alpha;
-                        break;
+
+                        if (state != null)
+                        {
+                            state.Stop();
+                        }
+                        else
+                        {
+                            breakout = true;
+                            return;
+                        }
                     }
 
                     if (testmove.evaluation < beta)
@@ -909,13 +943,30 @@ namespace Skotz_Chess_Engine
                 {
                     if (improved && !silent)
                     {
-                        Console.WriteLine("info score cp " +  (white_to_play ? bestmove.evaluation : -bestmove.evaluation) +
+                        Console.WriteLine("info score cp " + (white_to_play ? bestmove.evaluation : -bestmove.evaluation) +
                             " depth " + (depth / 2) +
                             " nodes " + evals +
                             " time " + stopwatch.ElapsedMilliseconds +
                             " currmove " + moves[move_num] +
                             " pv " + bestmove.primary_variation);
                         improved = false;
+                    }
+                }
+            };
+
+            if (firstlevel && depth > 2)
+            {
+                Parallel.For(0, moves.Count, loop);
+            }
+            else
+            {
+                for (int move_num = 0; move_num < moves.Count; move_num++)
+                {
+                    loop(move_num, null);
+
+                    if (breakout)
+                    {
+                        break;
                     }
                 }
             }
@@ -1001,15 +1052,36 @@ namespace Skotz_Chess_Engine
             return bestmove;
         }
 
-        private void RemoveEvaluatedMove(ulong hash)
+        private bool DetectRepetition(Board board)
         {
-            positions[hash]--;
-            if (positions[hash] <= 0)
+            ulong lastmove = board.history[(board.history_next - 1 + Constants.history_size) % Constants.history_size];
+
+            // Search backwards through the history starting before the last move and look for a repetition
+            for (int i = 2; i <= Constants.history_size; i++)
             {
-                // Clean up some of the millions of empty records...
-                positions.Remove(hash);
+                int index = (board.history_next - i + Constants.history_size) % Constants.history_size;
+                if (board.history[index] == lastmove)
+                {
+                    return true;
+                }
+                if (board.history[index] == 0UL)
+                {
+                    return false;
+                }
             }
+
+            return false;
         }
+
+        //private void RemoveEvaluatedMove(ulong hash)
+        //{
+        //    positions[hash]--;
+        //    if (positions[hash] <= 0)
+        //    {
+        //        // Clean up some of the millions of empty records...
+        //        positions.Remove(hash);
+        //    }
+        //}
 
         private int EvaluateBoard(ref Board position)
         {

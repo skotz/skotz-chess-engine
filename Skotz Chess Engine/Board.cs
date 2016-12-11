@@ -30,6 +30,9 @@ namespace Skotz_Chess_Engine
         public int half_move_number;
         public int move_number;
 
+        public ulong[] history;
+        public int history_next;
+
         // TODO: Maintain a running hash to cut down on time
         // public ulong hash;
 
