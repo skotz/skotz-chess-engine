@@ -1,0 +1,65 @@
+[Event "Computer chess game"]
+[Site "SKOTZ"]
+[Date "2016.12.11"]
+[Round "?"]
+[White "Skotz v0.2.4"]
+[Black "Skotz v0.2.3"]
+[Result "1-0"]
+[BlackElo "2200"]
+[ECO "A00"]
+[Opening "Dunst (Sleipner-Heinrichsen-Van Geet) Opening"]
+[Time "13:06:34"]
+[Variation "1...Nf6 2.Nf3"]
+[WhiteElo "2200"]
+[Termination "normal"]
+[PlyCount "69"]
+[WhiteType "program"]
+[BlackType "program"]
+[Comment "Depth 4 half moves"]
+
+1. Nc3 {(Nb1-c3 Nb8-c6 Ng1-f3 Ng8-f6) -0.01/2 0} Nf6 {(Ng8-f6 Ng1-f3 Nb8-c6
+e2-e4) -0.41/2 0} 2. Nf3 {(Ng1-f3 Nb8-c6 e2-e3 e7-e5) -0.15/2 0} Nc6
+{(Nb8-c6 e2-e4 e7-e6 d2-d4) -0.61/2 0} 3. d3 {(d2-d3 Nc6-b4 Bc1-f4 Nb4xd3+)
+-0.39/2 0} d6 {(d7-d6 Bc1-g5 Nf6-d7 Bg5xe7) -1.14/2 0} 4. Bg5 {(Bc1-g5
+Bc8-f5 Bg5xf6 e7xf6) -0.53/2 0} Bg4 {(Bc8-g4 e2-e4 Bg4xf3 Qd1xf3) -0.86/2
+0} 5. h3 {(h2-h3 Bg4-e6 Bg5xf6 e7xf6) -0.54/2 0} Be6 {(Bg4-e6 e2-e4 Nf6-d7
+Bg5xe7) -1.20/2 0} 6. e4 {(e2-e4 Qd8-d7 Bg5xf6 e7xf6) -0.16/2 0} h6 {(h7-h6
+Bg5-f4 Qd8-d7 Bf4xd6) -1.35/2 0} 7. Bxf6 {(Bg5xf6 e7xf6 Bf1-e2 Be6xh3)
+-0.69/2 0} exf6 {(e7xf6 Nc3-b5 Bf8-e7 Nb5xd6+) -0.71/2 0} 8. a3 {(a2-a3
+Bf8-e7 h3-h4 d6-d5) -0.58/2 0} f5 {(f6-f5 Bf1-e2 f5xe4 d3xe4) -0.04/2 0} 9.
+exf5 {(e4xf5 Be6xf5 Qd1-e2+ Bf8-e7) -0.54/2 0} Bxf5 {(Be6xf5 Nc3-d5 Qd8-d7
+Nd5xc7+) -0.54/2 0} 10. Nd5 {(Nc3-d5 Ke8-d7 Bf1-e2 Bf5xd3) -1.03/2 0} Qd7
+{(Qd8-d7 Bf1-e2 O-O-O Nd5xc7) -0.66/2 0} 11. Be2 {(Bf1-e2 a7-a6 Qd1-d2
+Bf5xd3) -1.02/2 0} Ne7 {(Nc6-e7 Nd5-e3 Bf5-e6 O-O) -0.23/2 0} 12. Ne3
+{(Nd5-e3 Bf5-g6 d3-d4 Bg6xc2) -0.87/2 0} O-O-O {(O-O-O O-O Bf5-e6 d3-d4)
+-0.30/2 0} 13. Nxf5 {(Ne3xf5 Qd7xf5 Nf3-d4 Qf5xd3) -0.80/2 0} Nxf5 {(Ne7xf5
+Qd1-d2 h6-h5 O-O) -0.40/2 0} 14. g4 {(g2-g4 Nf5-e7 d3-d4 Qd7xg4) -0.77/2 0}
+Ne7 {(Nf5-e7 Qd1-c1 Ne7-d5 Qc1xh6) -0.86/2 0} 15. Nd4 {(Nf3-d4 Qd7-a4
+Nd4-f3 Qa4xc2) -1.05/2 0} Qa4 {(Qd7-a4 b2-b4 Ne7-d5 O-O) -0.17/2 0} 16. c4
+{(c2-c4 Qa4-a6 Be2-f3 Qa6xc4) -0.83/2 0} Qa5+ {(Qa4-a5+ Ke1-f1 Kc8-b8
+Kf1-g1) -0.20/2 0} 17. Kf1 {(Ke1-f1 Qa5-e5 Be2-f3 Qe5xd4) -3.08/2 0} Qe5
+{(Qa5-e5 Nd4-b5 Qe5xb2 Nb5xd6+) 0.00/2 0} 18. Nb5 {(Nd4-b5 Kc8-b8 Nb5xd6
+Qe5xe2+) -2.33/2 0} Qxb2 {(Qe5xb2 Kf1-g1 Kc8-b8 Nb5xd6) 0.00/2 0} 19. Rb1
+{(Ra1-b1 Qb2-e5 Nb5xa7+ Kc8-b8) -0.60/2 0} Qe5 {(Qb2-e5 Nb5xa7+ Kc8-b8
+Rb1xb7+) -0.43/2 0} 20. d4 {(d3-d4 Qe5-e4 Nb5xa7+ Kc8-b8) -0.39/2 0} Qe6
+{(Qe5-e6 Nb5xa7+ Kc8-b8 Rb1xb7+) -0.64/2 0} 21. d5 {(d4-d5 Ne7xd5 Nb5xa7+
+Kc8-b8) -1.73/2 0} Qe4 {(Qe6-e4 Nb5xa7+ Kc8-b8 Rb1xb7+) -0.68/2 0} 22. f3
+{(f2-f3 Qe4-e3 Nb5xa7+ Qe3xa7) -2.89/2 0} Qe3 {(Qe4-e3 Rb1-b3 Qe3-f4
+Nb5xd6+) +0.02/2 0} 23. Qd4 {(Qd1-d4 Qe3xd4 Nb5xd4 Ne7xd5) -2.16/2 0} Qxd4
+{(Qe3xd4 Nb5xd4 Kc8-b8 Rb1xb7+) -0.16/2 0} 24. Nxd4 {(Nb5xd4 Rd8-d7 Be2-d3
+Ne7xd5) -2.12/2 0} c6 {(c7-c6 d5xc6 b7xc6 Nd4xc6) 0.00/2 0} 25. dxc6
+{(d5xc6 Ne7xc6 Nd4xc6 b7xc6) -0.83/2 0} bxc6 {(b7xc6 f3-f4 c6-c5 Kf1-g1)
++0.58/2 0} 26. f4 {(f3-f4 c6-c5 Nd4-f3 Ne7-d5) -0.98/2 0} Rg8 {(Rh8-g8
+Kf1-g1 c6-c5 Rb1-b7) +0.47/2 0} 27. Bf3 {(Be2-f3 d6-d5 c4xd5 c6xd5) -0.66/2
+0} c5 {(c6-c5 Nd4-b5 Kc8-b8 Nb5xd6+) -0.07/2 0} 28. Nc2 {(Nd4-c2 d6-d5
+c4xd5 Ne7xd5) -0.95/2 0} Ng6 {(Ne7-g6 f4-f5 Ng6-e5 Nc2-d4) +0.77/2 0} 29.
+f5 {(f4-f5 Ng6-e5 Bf3-b7+ Kc8-c7) -0.95/2 0} Ne5 {(Ng6-e5 Bf3-d5 Bf8-e7
+Bd5xf7) +0.24/2 0} 30. Bd5 {(Bf3-d5 Rd8-d7 Nc2-e3 Ne5xc4) -1.68/2 0} Rd7
+{(Rd8-d7 Rb1-e1 Ne5-d3 Bd5xf7) -0.15/2 0} 31. Ne3 {(Nc2-e3 Bf8-e7 Rb1-b2
+Ne5xc4) -1.86/2 0} Rh8 {(Rg8-h8 Rb1-b5 Bf8-e7 Rb5xc5+) +0.05/2 0} 32. Rh2
+{(Rh1-h2 Bf8-e7 Rb1-b2 Ne5xc4) -1.78/2 0} Be7 {(Bf8-e7 Rb1-b5 Be7-f6
+Rb5xc5+) +0.18/2 0} 33. Rhb2 {(Rh2-b2 Be7-f6 Rb2-b8+ Kc8-c7) -1.10/2 0} Rh7
+{(Rh8-h7 Rb2-b8+ Kc8-c7 Bd5xf7) -0.17/2 0} 34. Rb8+ {(Rb2-b8+ Kc8-c7
+Rb1-b7+) +M500/2 0} Kc7 {(Kc8-c7 Rb1-b7+) -M500/2 0} 35. R1b7# {(Rb1-b7+)
++M500/2 0} 1-0
+

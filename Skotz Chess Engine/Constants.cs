@@ -18,7 +18,7 @@ namespace Skotz_Chess_Engine
         public const int eval_knight = 310;
         public const int eval_pawn = 100;
 
-        public const int eval_develop_piece = 15;
+        public const int eval_undeveloped_piece_penalty = 15;
 
         public const int eval_king_loss_threshold = eval_king / 2;
         public const int eval_adjust_king_loss = 1000;
@@ -27,6 +27,9 @@ namespace Skotz_Chess_Engine
         public const int eval_doubled_pawn_penalty = 2;
         public const int eval_blocked_pawn_penalty = 1;
         public const int eval_isolated_pawn_penalty = 5;
+        public const int eval_connected_pawn_bonus = 3;
+
+        public const int eval_endgame_fewer_than_piece_count = 10;
 
         #endregion
 
@@ -71,9 +74,9 @@ namespace Skotz_Chess_Engine
 
         public static int[] piece_square_value_black_pawn = new int[] {
              0,  0,  0,  0,  0,  0,  0,  0,
-            50, 50, 50, 50, 50, 50, 50, 50,
-            10, 10, 20, 30, 30, 20, 10, 10,
-             5,  5, 10, 25, 25, 10,  5,  5,
+            40, 40, 40, 40, 40, 40, 40, 40,
+            10, 20, 20, 30, 30, 20, 20, 10,
+             5,  5, 10, 35, 35, 10,  5,  5,
              0,  0,  0, 20, 20,  0,  0,  0,
              5, -5,-10,  0,  0,-10, -5,  5,
              5, 10, 10,-20,-20, 10, 10,  5,
@@ -84,9 +87,9 @@ namespace Skotz_Chess_Engine
              5, 10, 10,-20,-20, 10, 10,  5,
              5, -5,-10,  0,  0,-10, -5,  5,
              0,  0,  0, 20, 20,  0,  0,  0,
-             5,  5, 10, 25, 25, 10,  5,  5,
-            10, 10, 20, 30, 30, 20, 10, 10,
-            50, 50, 50, 50, 50, 50, 50, 50,
+             5,  5, 10, 35, 35, 10,  5,  5,
+            10, 20, 20, 30, 30, 20, 20, 10,
+            40, 40, 40, 40, 40, 40, 40, 40,
              0,  0,  0,  0,  0,  0,  0,  0 };
 
         public static int[] piece_square_value_black_knight = new int[] {
@@ -130,16 +133,6 @@ namespace Skotz_Chess_Engine
              -20,-10,-10,-10,-10,-10,-10,-20 };
 
         public static int[] piece_square_value_black_rook = new int[] {
-               0,  0,  0,  0,  0,  0,  0,  0,
-               5, 10, 10, 10, 10, 10, 10,  5,
-              -5,  0,  0,  0,  0,  0,  0, -5,
-              -5,  0,  0,  0,  0,  0,  0, -5,
-              -5,  0,  0,  0,  0,  0,  0, -5,
-              -5,  0,  0,  0,  0,  0,  0, -5,
-              -5,  0,  0,  0,  0,  0,  0, -5,
-               0,  0,  0,  5,  5,  0,  0,  0 };
-
-        public static int[] piece_square_value_white_rook = new int[] {
                0,  0,  0,  5,  5,  0,  0,  0,
               -5,  0,  0,  0,  0,  0,  0, -5,
               -5,  0,  0,  0,  0,  0,  0, -5,
@@ -148,6 +141,16 @@ namespace Skotz_Chess_Engine
               -5,  0,  0,  0,  0,  0,  0, -5,
                5, 10, 10, 10, 10, 10, 10,  5,
                0,  0,  0,  0,  0,  0,  0,  0 };
+
+        public static int[] piece_square_value_white_rook = new int[] {
+               0,  0,  0,  0,  0,  0,  0,  0,
+               5, 10, 10, 10, 10, 10, 10,  5,
+              -5,  0,  0,  0,  0,  0,  0, -5,
+              -5,  0,  0,  0,  0,  0,  0, -5,
+              -5,  0,  0,  0,  0,  0,  0, -5,
+              -5,  0,  0,  0,  0,  0,  0, -5,
+              -5,  0,  0,  0,  0,  0,  0, -5,
+               0,  0,  0,  5,  5,  0,  0,  0 };
 
         public static int[] piece_square_value_black_queen = new int[] {
               -20,-10,-10, -5, -5,-10,-10,-20,
@@ -170,16 +173,6 @@ namespace Skotz_Chess_Engine
               -20,-10,-10, -5, -5,-10,-10,-20 };
 
         public static int[] piece_square_value_black_king_middle = new int[] {
-              -30,-40,-40,-50,-50,-40,-40,-30,
-              -30,-40,-40,-50,-50,-40,-40,-30,
-              -30,-40,-40,-50,-50,-40,-40,-30,
-              -30,-40,-40,-50,-50,-40,-40,-30,
-              -20,-30,-30,-40,-40,-30,-30,-20,
-              -10,-20,-20,-20,-20,-20,-20,-10,
-               20, 20, -5, -5, -5, -5, 20, 20,
-               20, 30, 10,  0,  0, 10, 30, 20 };
-
-        public static int[] piece_square_value_white_king_middle = new int[] {
                20, 30, 10,  0,  0, 10, 30, 20,
                20, 20, -5, -5, -5, -5, 20, 20,
               -10,-20,-20,-20,-20,-20,-20,-10,
@@ -188,6 +181,16 @@ namespace Skotz_Chess_Engine
               -30,-40,-40,-50,-50,-40,-40,-30,
               -30,-40,-40,-50,-50,-40,-40,-30,
               -30,-40,-40,-50,-50,-40,-40,-30 };
+
+        public static int[] piece_square_value_white_king_middle = new int[] {
+              -30,-40,-40,-50,-50,-40,-40,-30,
+              -30,-40,-40,-50,-50,-40,-40,-30,
+              -30,-40,-40,-50,-50,-40,-40,-30,
+              -30,-40,-40,-50,-50,-40,-40,-30,
+              -20,-30,-30,-40,-40,-30,-30,-20,
+              -10,-20,-20,-20,-20,-20,-20,-10,
+               20, 20, -5, -5, -5, -5, 20, 20,
+               20, 30, 10,  0,  0, 10, 30, 20 };
 
         public static int[] piece_square_value_black_king_end = new int[] {
                -50,-40,-30,-20,-20,-30,-40,-50,

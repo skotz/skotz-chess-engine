@@ -15,7 +15,7 @@ namespace Skotz_Chess_Engine
 
         private Stopwatch stopwatch;
         private int evals;
-        private int hashLookups;
+        //private int hashLookups;
         private bool cutoff;
 
         // TODO: this will not work when the engine is allowed to multi-thread since this assumes a singular user traversing through the tree
@@ -656,7 +656,7 @@ namespace Skotz_Chess_Engine
         {
             stopwatch = Stopwatch.StartNew();
             evals = 0;
-            hashLookups = 0;
+            //hashLookups = 0;
             cutoff = false;
 
             time_per_move = seconds == -1 ? 10 : seconds;
@@ -1021,28 +1021,21 @@ namespace Skotz_Chess_Engine
 
         private int EvaluateBoard(ref Board position)
         {
-            //// See if we can look up a previous calculation first
-            //ulong hash = GetPositionHash(ref position);
-            //if (evaluations.ContainsKey(hash))
-            //{
-            //    return evaluations[hash];
-            //}
-
             // Start with a random evaluation to mix it up ever so slightly when there's two equal moves
             double eval = Utility.Rand.Next(3) - 1;
             evals++;
 
-            eval += EvaluateMaterial(position);
+            int totalPieces;
+
+            eval += EvaluateMaterial(position, out totalPieces);
 
             eval += EvaluateDevelopment(position);
 
-            eval += EvaluatePiecePlacement(position);
+            eval += EvaluatePiecePlacement(position, totalPieces);
 
             eval += EvaluatePawnStructure(position);
 
-            eval += EvaluateMobility(position) / 10.0;
-
-            //evaluations.Add(hash, eval);
+            eval += EvaluateMobility(position);
 
             return (int)eval;
         }
@@ -1093,6 +1086,10 @@ namespace Skotz_Chess_Engine
             eval += (position.b_pawn & Constants.file_h) == 0 && (position.b_pawn & Constants.file_f) == 0 && Utility.CountBits(position.b_pawn & Constants.file_g) > 1 ? Constants.eval_isolated_pawn_penalty : 0;
             eval += (position.b_pawn & Constants.file_g) == 0 && Utility.CountBits(position.b_pawn & Constants.file_h) > 1 ? Constants.eval_isolated_pawn_penalty : 0;
 
+            // Connected pawns
+            eval += (Utility.CountBits((position.w_pawn << 7) & position.w_pawn) + Utility.CountBits((position.w_pawn << 9) & position.w_pawn)) * Constants.eval_connected_pawn_bonus;
+            eval -= (Utility.CountBits((position.b_pawn >> 7) & position.b_pawn) + Utility.CountBits((position.b_pawn >> 9) & position.b_pawn)) * Constants.eval_connected_pawn_bonus;
+
             return eval;
         }
 
@@ -1106,7 +1103,7 @@ namespace Skotz_Chess_Engine
             return eval;
         }
 
-        private static int EvaluatePiecePlacement(Board position)
+        private static int EvaluatePiecePlacement(Board position, int totalPieces)
         {
             ulong square_mask;
             int eval = 0;
@@ -1119,8 +1116,14 @@ namespace Skotz_Chess_Engine
                 // White
                 if ((position.w_king & square_mask) != 0UL)
                 {
-                    // TODO: consider the end game where it's better to be in the middle
-                    eval += Constants.piece_square_value_white_king_middle[square];
+                    if (totalPieces <= Constants.eval_endgame_fewer_than_piece_count)
+                    {
+                        eval += Constants.piece_square_value_white_king_end[square];
+                    }
+                    else
+                    {
+                        eval += Constants.piece_square_value_white_king_middle[square];
+                    }
                 }
                 else if ((position.w_queen & square_mask) != 0UL)
                 {
@@ -1146,7 +1149,14 @@ namespace Skotz_Chess_Engine
                 // Black
                 if ((position.b_king & square_mask) != 0UL)
                 {
-                    eval -= Constants.piece_square_value_black_king_middle[square];
+                    if (totalPieces <= Constants.eval_endgame_fewer_than_piece_count)
+                    {
+                        eval -= Constants.piece_square_value_black_king_end[square];
+                    }
+                    else
+                    {
+                        eval -= Constants.piece_square_value_black_king_middle[square];
+                    }
                 }
                 else if ((position.b_queen & square_mask) != 0UL)
                 {
@@ -1177,15 +1187,15 @@ namespace Skotz_Chess_Engine
         {
             int eval = 0;
 
-            eval -= (position.w_bishop & Constants.mask_F1) != 0UL ? Constants.eval_develop_piece : 0;
-            eval -= (position.w_bishop & Constants.mask_C1) != 0UL ? Constants.eval_develop_piece : 0;
-            eval -= (position.w_knight & Constants.mask_G1) != 0UL ? Constants.eval_develop_piece : 0;
-            eval -= (position.w_knight & Constants.mask_B1) != 0UL ? Constants.eval_develop_piece : 0;
+            eval -= (position.w_bishop & Constants.mask_F1) != 0UL ? Constants.eval_undeveloped_piece_penalty : 0;
+            eval -= (position.w_bishop & Constants.mask_C1) != 0UL ? Constants.eval_undeveloped_piece_penalty : 0;
+            eval -= (position.w_knight & Constants.mask_G1) != 0UL ? Constants.eval_undeveloped_piece_penalty : 0;
+            eval -= (position.w_knight & Constants.mask_B1) != 0UL ? Constants.eval_undeveloped_piece_penalty : 0;
 
-            eval += (position.b_bishop & Constants.mask_F8) != 0UL ? Constants.eval_develop_piece : 0;
-            eval += (position.b_bishop & Constants.mask_C8) != 0UL ? Constants.eval_develop_piece : 0;
-            eval += (position.b_knight & Constants.mask_G8) != 0UL ? Constants.eval_develop_piece : 0;
-            eval += (position.b_knight & Constants.mask_B8) != 0UL ? Constants.eval_develop_piece : 0;
+            eval += (position.b_bishop & Constants.mask_F8) != 0UL ? Constants.eval_undeveloped_piece_penalty : 0;
+            eval += (position.b_bishop & Constants.mask_C8) != 0UL ? Constants.eval_undeveloped_piece_penalty : 0;
+            eval += (position.b_knight & Constants.mask_G8) != 0UL ? Constants.eval_undeveloped_piece_penalty : 0;
+            eval += (position.b_knight & Constants.mask_B8) != 0UL ? Constants.eval_undeveloped_piece_penalty : 0;
 
             return eval;
         }
@@ -1203,40 +1213,59 @@ namespace Skotz_Chess_Engine
         //    eval -= (position.b_king & Constants.king_safety_best_ranks) != 0UL ? Constants.king_safety_best_ranks_centipawns : 0;
         //}
 
-        private int EvaluateMaterial(Board position)
+        private int EvaluateMaterial(Board position, out int totalPieces)
         {
             int eval = 0;
+            int bits = 0;
+            totalPieces = 0;
 
-            //// See if we can look up a previous calculation first
-            //ulong hash = GetPositionHash(ref position);
-            //ulong key = hash & material_max_mask;
-            //int saved_eval = material_eval[key];
+            bits = Utility.CountBits(position.w_king);
+            totalPieces += bits;
+            eval += bits * Constants.eval_king;
 
-            //if (material_positions[key].Equals(position))
-            //{
-            //    diff = saved_eval;
-            //}
-            //else
-            //{
-            
-            eval += Utility.CountBits(position.w_king) * Constants.eval_king;
-            eval += Utility.CountBits(position.w_queen) * Constants.eval_queen;
-            eval += Utility.CountBits(position.w_rook) * Constants.eval_rook;
-            eval += Utility.CountBits(position.w_bishop) * Constants.eval_bishop;
-            eval += Utility.CountBits(position.w_knight) * Constants.eval_knight;
-            eval += Utility.CountBits(position.w_pawn) * Constants.eval_pawn;
+            bits = Utility.CountBits(position.w_queen);
+            totalPieces += bits;
+            eval += bits * Constants.eval_queen;
 
-            eval -= Utility.CountBits(position.b_king) * Constants.eval_king;
-            eval -= Utility.CountBits(position.b_queen) * Constants.eval_queen;
-            eval -= Utility.CountBits(position.b_rook) * Constants.eval_rook;
-            eval -= Utility.CountBits(position.b_bishop) * Constants.eval_bishop;
-            eval -= Utility.CountBits(position.b_knight) * Constants.eval_knight;
-            eval -= Utility.CountBits(position.b_pawn) * Constants.eval_pawn;
+            bits = Utility.CountBits(position.w_rook);
+            totalPieces += bits;
+            eval += bits * Constants.eval_rook;
 
-            //    // Save the calculation
-            //    material_eval[key] = diff;
-            //    material_positions[key] = position;
-            //}
+            bits = Utility.CountBits(position.w_bishop);
+            totalPieces += bits;
+            eval += bits * Constants.eval_bishop;
+
+            bits = Utility.CountBits(position.w_knight);
+            totalPieces += bits;
+            eval += bits * Constants.eval_knight;
+
+            bits = Utility.CountBits(position.w_pawn);
+            totalPieces += bits;
+            eval += bits * Constants.eval_pawn;
+
+            bits = Utility.CountBits(position.b_king);
+            totalPieces += bits;
+            eval -= bits * Constants.eval_king;
+
+            bits = Utility.CountBits(position.b_queen);
+            totalPieces += bits;
+            eval -= bits * Constants.eval_queen;
+
+            bits = Utility.CountBits(position.b_rook);
+            totalPieces += bits;
+            eval -= bits * Constants.eval_rook;
+
+            bits = Utility.CountBits(position.b_bishop);
+            totalPieces += bits;
+            eval -= bits * Constants.eval_bishop;
+
+            bits = Utility.CountBits(position.b_knight);
+            totalPieces += bits;
+            eval -= bits * Constants.eval_knight;
+
+            bits = Utility.CountBits(position.b_pawn);
+            totalPieces += bits;
+            eval -= bits * Constants.eval_pawn;
 
             return eval;
         }

@@ -13,7 +13,7 @@ namespace Skotz_Chess_Engine
         Game game;
 
         string engine = "Skotz";
-        string version = "v0.2.3";
+        string version = "v0.2.4";
 
         bool debugFileCleared = false;
         Queue<string> testInput = new Queue<string>();
