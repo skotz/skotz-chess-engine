@@ -120,6 +120,14 @@ namespace Skotz_Chess_Engine
                 {
                     moveflags |= Constants.move_flag_is_capture;
                 }
+                else if (GetPieceTypeOfSquare(board, from_mask) == Constants.piece_P)
+                {
+                    // Check for en-passant (diagonal pawn move to empty square)
+                    if ((to_mask >> 7) == from_mask || (to_mask >> 9) == from_mask || (to_mask << 7) == from_mask || (to_mask << 9) == from_mask)
+                    {
+                        moveflags |= Constants.move_flag_is_en_passent;
+                    }
+                }
 
                 Move m = new Move()
                 {

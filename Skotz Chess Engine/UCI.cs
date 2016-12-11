@@ -110,6 +110,13 @@ namespace Skotz_Chess_Engine
                             PositionTester tester = new PositionTester();
                             tester.RunTests();
                         }
+                        
+                        if (cmd == "savefen")
+                        {
+                            string fen = BoardGenerator.ToFEN(game.board);
+                            Console.WriteLine(fen);
+                            SaveToFile("fen.txt", fen);
+                        }
 
                         if (cmd.StartsWith("ucinewgame"))
                         {
@@ -228,6 +235,14 @@ namespace Skotz_Chess_Engine
                     }
                 } while (!quit);
             } while (!quit);
+        }
+
+        private void SaveToFile(string file, string info)
+        {
+            using (StreamWriter w = new StreamWriter(file, true))
+            {
+                w.WriteLine(info);
+            }
         }
 
         private void AppendToDebugFile(bool player, string cmd)

@@ -207,6 +207,203 @@ namespace Skotz_Chess_Engine
             return board;
         }
 
+        public static string ToFEN(Board position)
+        {
+            ulong square_mask;
+            int blanks = 0;
+            string fen = "";
+
+            Func<string> addBlanks = () =>
+            {
+                string count = blanks > 0 ? blanks.ToString() : "";
+                blanks = 0;
+                return count;
+            };
+
+            // Evaluate piece placement from a8 to h1
+            for (int square = 63; square >= 0; square--)
+            {
+                square_mask = Constants.bit_index_to_mask[square];
+
+                // White
+                if ((position.w_king & square_mask) != 0UL)
+                {
+                    fen += addBlanks() + "K";
+                }
+                else if ((position.w_queen & square_mask) != 0UL)
+                {
+                    fen += addBlanks() + "Q";
+                }
+                else if ((position.w_rook & square_mask) != 0UL)
+                {
+                    fen += addBlanks() + "R";
+                }
+                else if ((position.w_bishop & square_mask) != 0UL)
+                {
+                    fen += addBlanks() + "B";
+                }
+                else if ((position.w_knight & square_mask) != 0UL)
+                {
+                    fen += addBlanks() + "N";
+                }
+                else if ((position.w_pawn & square_mask) != 0UL)
+                {
+                    fen += addBlanks() + "P";
+                }
+                else if ((position.b_king & square_mask) != 0UL)
+                {
+                    fen += addBlanks() + "k";
+                }
+                else if ((position.b_queen & square_mask) != 0UL)
+                {
+                    fen += addBlanks() + "q";
+                }
+                else if ((position.b_rook & square_mask) != 0UL)
+                {
+                    fen += addBlanks() + "r";
+                }
+                else if ((position.b_bishop & square_mask) != 0UL)
+                {
+                    fen += addBlanks() + "b";
+                }
+                else if ((position.b_knight & square_mask) != 0UL)
+                {
+                    fen += addBlanks() + "n";
+                }
+                else if ((position.b_pawn & square_mask) != 0UL)
+                {
+                    fen += addBlanks() + "p";
+                }
+                else
+                {
+                    blanks++;
+                }
+
+                if ((square + 1) % 8 == 0 && square != 63)
+                {
+                    fen += addBlanks() + "/";
+                }
+            }
+            fen += addBlanks();
+
+            fen += " ";
+
+            // Side to move
+            fen += (position.flags & Constants.flag_white_to_move) != 0UL ? "w" : "b";
+
+            fen += " ";
+
+            // Castling rights
+            int castle = 0;
+            if ((position.flags & Constants.flag_castle_white_king) != 0UL)
+            {
+                fen += "K";
+                castle++;
+            }
+            if ((position.flags & Constants.flag_castle_white_queen) != 0UL)
+            {
+                fen += "Q";
+                castle++;
+            }
+            if ((position.flags & Constants.flag_castle_black_king) != 0UL)
+            {
+                fen += "k";
+                castle++;
+            }
+            if ((position.flags & Constants.flag_castle_black_queen) != 0UL)
+            {
+                fen += "q";
+                castle++;
+            }
+            if (castle == 0)
+            {
+                fen += "-";
+            }
+            
+            fen += " ";
+
+            // En-passent square
+            if (position.en_passent_square == Constants.mask_A6)
+            {
+                fen += "a6";
+            }
+            else if (position.en_passent_square == Constants.mask_B6)
+            {
+                fen += "b6";
+            }
+            else if (position.en_passent_square == Constants.mask_C6)
+            {
+                fen += "c6";
+            }
+            else if (position.en_passent_square == Constants.mask_D6)
+            {
+                fen += "d6";
+            }
+            else if (position.en_passent_square == Constants.mask_E6)
+            {
+                fen += "e6";
+            }
+            else if (position.en_passent_square == Constants.mask_F6)
+            {
+                fen += "f6";
+            }
+            else if (position.en_passent_square == Constants.mask_G6)
+            {
+                fen += "g6";
+            }
+            else if (position.en_passent_square == Constants.mask_H6)
+            {
+                fen += "h6";
+            }
+            else if (position.en_passent_square == Constants.mask_A3)
+            {
+                fen += "a3";
+            }
+            else if (position.en_passent_square == Constants.mask_B3)
+            {
+                fen += "b3";
+            }
+            else if (position.en_passent_square == Constants.mask_C3)
+            {
+                fen += "c3";
+            }
+            else if (position.en_passent_square == Constants.mask_D3)
+            {
+                fen += "d3";
+            }
+            else if (position.en_passent_square == Constants.mask_E3)
+            {
+                fen += "e3";
+            }
+            else if (position.en_passent_square == Constants.mask_F3)
+            {
+                fen += "f3";
+            }
+            else if (position.en_passent_square == Constants.mask_G3)
+            {
+                fen += "g3";
+            }
+            else if (position.en_passent_square == Constants.mask_H3)
+            {
+                fen += "h3";
+            }
+            else
+            {
+                fen += "-";
+            }
+
+            fen += " ";
+
+            // TODO: need to put the number of half moves since the last pawn capture here
+            fen += "0";
+
+            fen += " ";
+
+            fen += position.move_number;
+
+            return fen;
+        }
+
         public static Board NewStandardSetup()
         {
             return new Board()
