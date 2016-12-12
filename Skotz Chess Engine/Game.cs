@@ -672,6 +672,12 @@ namespace Skotz_Chess_Engine
             List<Move> all_moves = new List<Move>();
             int moves_count = 0;
 
+            // Panic mode when you're low on time
+            if (seconds > 0 && seconds <= 0.5)
+            {
+                depth_per_move = 4;
+            }
+
             // Iterative deepening
             for (int depth = 2; depth <= depth_per_move; depth += 2)
             {
@@ -701,6 +707,11 @@ namespace Skotz_Chess_Engine
                 }
 
                 moves_count = moves.Count;
+
+                if (best.only_move)
+                {
+                    break;
+                }
             }
 
             // Console.WriteLine("Evals: " + evals + " Lookups: " + hashLookups + " %: " + ((hashLookups * 100.0) / evals).ToString("0.00"));
@@ -1006,6 +1017,12 @@ namespace Skotz_Chess_Engine
             //    }
             //}
 
+            // If there's only one move to make, make it
+            if (moves.Count == 1)
+            {
+                bestmove.only_move = true;
+            }
+
             return bestmove;
         }
 
@@ -1021,7 +1038,7 @@ namespace Skotz_Chess_Engine
 
         private int EvaluateBoard(ref Board position)
         {
-            // Start with a random evaluation to mix it up ever so slightly when there's two equal moves
+            // Start with a random evaluation to mix it up ever so slightly when there's two equal-ish moves
             double eval = Utility.Rand.Next(3) - 1;
             evals++;
 
@@ -1029,13 +1046,17 @@ namespace Skotz_Chess_Engine
 
             eval += EvaluateMaterial(position, out totalPieces);
 
+            bool isEndgame = totalPieces <= Constants.eval_endgame_fewer_than_piece_count;
+
             eval += EvaluateDevelopment(position);
 
-            eval += EvaluatePiecePlacement(position, totalPieces);
+            eval += EvaluatePiecePlacement(position, isEndgame);
 
             eval += EvaluatePawnStructure(position);
 
-            eval += EvaluateMobility(position);
+            eval += EvaluateMobility(position) / 5;
+
+            eval += EvaluateKingSafety(position, isEndgame);
 
             return (int)eval;
         }
@@ -1103,7 +1124,7 @@ namespace Skotz_Chess_Engine
             return eval;
         }
 
-        private static int EvaluatePiecePlacement(Board position, int totalPieces)
+        private static int EvaluatePiecePlacement(Board position, bool isEndgame)
         {
             ulong square_mask;
             int eval = 0;
@@ -1116,7 +1137,7 @@ namespace Skotz_Chess_Engine
                 // White
                 if ((position.w_king & square_mask) != 0UL)
                 {
-                    if (totalPieces <= Constants.eval_endgame_fewer_than_piece_count)
+                    if (isEndgame)
                     {
                         eval += Constants.piece_square_value_white_king_end[square];
                     }
@@ -1149,7 +1170,7 @@ namespace Skotz_Chess_Engine
                 // Black
                 if ((position.b_king & square_mask) != 0UL)
                 {
-                    if (totalPieces <= Constants.eval_endgame_fewer_than_piece_count)
+                    if (isEndgame)
                     {
                         eval -= Constants.piece_square_value_black_king_end[square];
                     }
@@ -1200,18 +1221,27 @@ namespace Skotz_Chess_Engine
             return eval;
         }
 
-        //private static void EvaluateKingSafety(ref Board position, ref int eval)
-        //{
-        //    eval += (position.w_king & Constants.king_safety_level_0) != 0UL ? Constants.king_safety_level_0_centipawns : 0;
-        //    eval += (position.w_king & Constants.king_safety_level_1) != 0UL ? Constants.king_safety_level_1_centipawns : 0;
-        //    eval += (position.w_king & Constants.king_safety_level_2) != 0UL ? Constants.king_safety_level_2_centipawns : 0;
-        //    eval += (position.w_king & Constants.king_safety_best_ranks) != 0UL ? Constants.king_safety_best_ranks_centipawns : 0;
+        private static int EvaluateKingSafety(Board position, bool isEndgame)
+        {
+            int eval = 0;
 
-        //    eval -= (position.b_king & Constants.king_safety_level_0) != 0UL ? Constants.king_safety_level_0_centipawns : 0;
-        //    eval -= (position.b_king & Constants.king_safety_level_1) != 0UL ? Constants.king_safety_level_1_centipawns : 0;
-        //    eval -= (position.b_king & Constants.king_safety_level_2) != 0UL ? Constants.king_safety_level_2_centipawns : 0;
-        //    eval -= (position.b_king & Constants.king_safety_best_ranks) != 0UL ? Constants.king_safety_best_ranks_centipawns : 0;
-        //}
+            if (!isEndgame)
+            {
+                // White pawn shields
+                eval += ((position.w_king << 7) & position.w_pawn) != 0UL ? Constants.eval_king_safety_pawn_shield_bonus : 0;
+                eval += ((position.w_king << 8) & position.w_pawn) != 0UL ? Constants.eval_king_safety_pawn_shield_bonus : 0;
+                eval += ((position.w_king << 9) & position.w_pawn) != 0UL ? Constants.eval_king_safety_pawn_shield_bonus : 0;
+
+                // Black pawn shields
+                eval -= ((position.b_king >> 7) & position.b_pawn) != 0UL ? Constants.eval_king_safety_pawn_shield_bonus : 0;
+                eval -= ((position.b_king >> 8) & position.b_pawn) != 0UL ? Constants.eval_king_safety_pawn_shield_bonus : 0;
+                eval -= ((position.b_king >> 9) & position.b_pawn) != 0UL ? Constants.eval_king_safety_pawn_shield_bonus : 0;
+            }
+
+            // Note: castled king location bonuses are figured into the piece placement matrices
+
+            return eval;
+        }
 
         private int EvaluateMaterial(Board position, out int totalPieces)
         {
