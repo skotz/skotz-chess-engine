@@ -19,11 +19,32 @@ namespace Skotz_Chess_Engine
         public int evals;
         public bool selective;
 
+        public bool only_move;
+
         public string primary_variation;
 
         public override string ToString()
         {
-            return Utility.GetMoveString(mask_from, mask_to);
+            string promote = "";
+
+            if ((flags & Constants.move_flag_is_promote_bishop) != 0UL)
+            {
+                promote += "b";
+            }
+            if ((flags & Constants.move_flag_is_promote_knight) != 0UL)
+            {
+                promote += "n";
+            }
+            if ((flags & Constants.move_flag_is_promote_rook) != 0UL)
+            {
+                promote += "r";
+            }
+            if ((flags & Constants.move_flag_is_promote_queen) != 0UL)
+            {
+                promote += "q";
+            }
+
+            return Utility.GetMoveString(mask_from, mask_to) + promote;
         }
 
         public ulong GetHash()
